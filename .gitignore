@@ -1,0 +1,208 @@
+# ============================================
+# Python
+# ============================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+.pytype/
+venv/
+env/
+ENV/
+.venv/
+
+# ============================================
+# Node.js / Next.js
+# ============================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+lerna-debug.log*
+.next/
+out/
+.vercel
+.turbo
+*.tsbuildinfo
+next-env.d.ts
+
+# ============================================
+# Environment Variables
+# ============================================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+*.env
+
+# ============================================
+# Docker
+# ============================================
+*.log
+volumes/
+data/
+mongodb_data/
+postgres_data/
+redis_data/
+
+# ============================================
+# IDEs and Editors
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.code-workspace
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.history/
+
+# ============================================
+# OS Files
+# ============================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ============================================
+# Logs
+# ============================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+pnpm-debug.log*
+
+# ============================================
+# Testing
+# ============================================
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+
+# ============================================
+# Build artifacts
+# ============================================
+*.tar
+*.tar.gz
+*.zip
+*.rar
+
+# ============================================
+# Temporary files
+# ============================================
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+
+# ============================================
+# Database
+# ============================================
+*.db
+*.sqlite
+*.sqlite3
+
+# ============================================
+# Secrets & Credentials
+# ============================================
+*.pem
+*.key
+*.crt
+*.p12
+.secrets/
+credentials.json
+service-account.json
+
+# ============================================
+# Large files (multimedia, datasets)
+# ============================================
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.flv
+*.wmv
+*.zip
+*.tar.gz
+*.rar
+*.7z
+*.iso
+*.dmg
+*.pkg
+*.deb
+*.rpm
+
+# ============================================
+# AI/ML Models & Data
+# ============================================
+*.h5
+*.pkl
+*.pickle
+*.joblib
+*.model
+*.weights
+*.ckpt
+*.pth
+*.pt
+datasets/
+models/
+checkpoints/
+
+# ============================================
+# Project Specific
+# ============================================
+# Gemini/Antigravity artifacts (if you don't want to track them)
+.gemini/
+
+# HAProxy certificates (regenerate locally)
+ecomm-pb/ecomm-app/haproxy/certs/*.pem
+
+# Keep structure files but ignore content
+!.gitkeep
