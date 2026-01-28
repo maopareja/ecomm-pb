@@ -60,3 +60,39 @@ async def create_product(
     )
     await product.insert()
     return product
+
+@router.patch("/{product_id}")
+async def update_product(
+    product_id: str,
+    prod: ProductCreate,
+    user: User = Depends(require_role([UserRole.PRODUCT_MANAGER, UserRole.ADMIN, UserRole.OWNER])),
+    tenant: Tenant = Depends(require_tenant)
+):
+    product = await Product.get(product_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    # Update fields
+    product.name = prod.name
+    product.price = prod.price
+    product.description = prod.description
+    product.stock = prod.stock
+    product.category = prod.category
+    product.images = prod.images
+    product.is_featured = prod.is_featured
+    
+    await product.save()
+    return product
+
+@router.delete("/{product_id}")
+async def delete_product(
+    product_id: str,
+    user: User = Depends(require_role([UserRole.PRODUCT_MANAGER, UserRole.ADMIN, UserRole.OWNER])),
+    tenant: Tenant = Depends(require_tenant)
+):
+    product = await Product.get(product_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    await product.delete()
+    return {"message": "Product deleted successfully"}

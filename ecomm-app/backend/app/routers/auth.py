@@ -132,6 +132,7 @@ async def get_current_user_info(user: User = Depends(get_current_user)):
     return {
         "email": user.email,
         "is_owner": user.is_owner,
+        "role": user.role,  # Include role for frontend access control
         "tenant": {
             "name": tenant.name if tenant else None,
             "slug": tenant.slug if tenant else None,

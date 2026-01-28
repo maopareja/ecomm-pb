@@ -1,27 +1,25 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from typing import List, Optional
-from pydantic import BaseModel
-from app.models import User, UserRole
+from fastapi import APIRouter, Depends, HTTPException
+from typing import List
 from app.models_location import Location, Inventory
-from app.dependencies import get_current_user, require_tenant
+from app.models import User, UserRole
+from app.dependencies import get_current_user
 from app.permissions import require_role
+from pydantic import BaseModel
+from datetime import datetime
 
 router = APIRouter(
     tags=["locations"],
     responses={404: {"description": "Not found"}},
 )
 
-# Schemas
 class LocationCreate(BaseModel):
     name: str
-    address: Optional[str] = None
-    phone: Optional[str] = None
+    address: str = ""
+    phone: str = ""
 
 class InventoryUpdate(BaseModel):
     product_id: str
     quantity: int
-
-# Endpoints
 
 @router.post("/", response_model=Location)
 async def create_location(
@@ -29,13 +27,16 @@ async def create_location(
     user: User = Depends(require_role([UserRole.ADMIN, UserRole.OWNER]))
 ):
     # Determine tenant from user
-    tenant_id = str(user.tenant.id) if user.tenant else None
-    if not tenant_id:
-         # Fallback or Error if strict multi-tenant
-         # For single tenant app, maybe hardcode or error?
-         # Let's assume there is a default tenant if user is admin
-         pass 
-
+    from app.models import Tenant
+    
+    if user.tenant:
+        tenant_id = str(user.tenant.id)
+    else:
+        # Fallback to default tenant for single-tenant mode
+        default_tenant = await Tenant.find_one(Tenant.slug == "ecomm-pb")
+        if not default_tenant:
+            raise HTTPException(status_code=500, detail="Default tenant not configured")
+        tenant_id = str(default_tenant.id)
     
     new_loc = Location(
         name=loc.name,
@@ -50,15 +51,45 @@ async def create_location(
 async def list_locations(
     user: User = Depends(get_current_user)
 ):
-    # Everyone can list locations? Or just internal?
-    # For now, let's allow authenticated users to see locations (e.g. for pickup selector)
-    tenant_id = str(user.tenant.id) if user.tenant else None
+    # Determine tenant from user
+    from app.models import Tenant
+    
+    if user.tenant:
+        tenant_id = str(user.tenant.id)
+    else:
+        # Fallback to default tenant for single-tenant mode
+        default_tenant = await Tenant.find_one(Tenant.slug == "ecomm-pb")
+        if not default_tenant:
+            return []  # Return empty list if no tenant configured
+        tenant_id = str(default_tenant.id)
+    
     return await Location.find(Location.tenant_id == tenant_id).to_list()
+
+@router.delete("/{location_id}")
+async def delete_location(
+    location_id: str,
+    user: User = Depends(require_role([UserRole.ADMIN, UserRole.OWNER]))
+):
+    # Delete location (admin/owner only)
+    location = await Location.get(location_id)
+    if not location:
+        raise HTTPException(status_code=404, detail="Location not found")
+    
+    # Check if there's inventory linked to this location
+    inventory_items = await Inventory.find(Inventory.location_id == location_id).to_list()
+    if inventory_items:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"No se puede eliminar sede con inventario ({len(inventory_items)} productos)"
+        )
+    
+    await location.delete()
+    return {"message": "Location deleted successfully"}
 
 @router.get("/{location_id}/inventory", response_model=List[Inventory])
 async def get_location_inventory(
     location_id: str,
-    user: User = Depends(require_role([UserRole.INVENTORY_MANAGER, UserRole.ADMIN, UserRole.OWNER, UserRole.SALES]))
+    user: User = Depends(get_current_user)
 ):
     return await Inventory.find(Inventory.location_id == location_id).to_list()
 
@@ -76,6 +107,7 @@ async def update_inventory(
     
     if inv:
         inv.quantity = update.quantity
+        inv.updated_at = datetime.utcnow()
         await inv.save()
     else:
         inv = Inventory(
