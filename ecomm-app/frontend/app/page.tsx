@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { InventoryManager } from './InventoryManager';
+import { CategoriesTab } from './CategoriesTab';
 
 // PB Pasteles Store
 export default function TenantStore() {
@@ -15,6 +17,7 @@ export default function TenantStore() {
 
   const [user, setUser] = useState<any>(null);
   const [currentCart, setCurrentCart] = useState<any>({});
+  const [categories, setCategories] = useState<any[]>([]); // New state
 
   // Auth States
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -25,6 +28,7 @@ export default function TenantStore() {
 
   useEffect(() => {
     fetchUser();
+    fetchCategories();
     fetchProducts();
     fetchCart();
   }, []);
@@ -42,6 +46,13 @@ export default function TenantStore() {
       .then(res => res.ok ? res.json() : null)
       .then(setUser)
       .catch(() => setUser(null));
+  };
+
+  const fetchCategories = () => {
+    fetch("/api/categories/", { credentials: "include" })
+      .then(res => res.ok ? res.json() : [])
+      .then(setCategories)
+      .catch(console.error);
   };
 
   const fetchProducts = () => {
@@ -230,18 +241,27 @@ export default function TenantStore() {
           <h3 className="text-3xl font-extrabold text-[var(--color-chocolate)]">
             {searchQuery ? `Resultados para "${searchQuery}"` : "Nuestras Delicias"}
           </h3>
-          {/* Simple Categories */}
+          {/* Dynamic Categories */}
           <div className="hidden md:flex gap-2">
-            {['', 'Tortas', 'Postres', 'Bebidas'].map(cat => (
+            <button
+              onClick={() => setCategoryFilter("")}
+              className={`px-4 py-1.5 rounded-full text-sm font-bold border transition-all ${categoryFilter === ""
+                ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]'
+                : 'border-[var(--color-chocolate)]/20 text-[var(--color-chocolate)] hover:bg-white'
+                }`}
+            >
+              Todos
+            </button>
+            {categories.map((cat: any) => (
               <button
-                key={cat}
-                onClick={() => setCategoryFilter(cat)}
-                className={`px-4 py-1.5 rounded-full text-sm font-bold border transition-all ${categoryFilter === cat
+                key={cat._id}
+                onClick={() => setCategoryFilter(cat.name)}
+                className={`px-4 py-1.5 rounded-full text-sm font-bold border transition-all ${categoryFilter === cat.name
                   ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]'
                   : 'border-[var(--color-chocolate)]/20 text-[var(--color-chocolate)] hover:bg-white'
                   }`}
               >
-                {cat || 'Todos'}
+                {cat.name}
               </button>
             ))}
           </div>
@@ -358,7 +378,11 @@ export default function TenantStore() {
           Let's create the link to the existing inline if user clicks the button.
           Actually, I reused the link above to just be a button that opens a dialog, let's restore the dialog.
        */}
-      <dialog id="owner_modal" className="modal bg-transparent p-0 w-full h-full max-w-none max-h-none backdrop:bg-white/80 backdrop:backdrop-blur-sm z-50">
+      <dialog
+        id="owner_modal"
+        className="modal bg-transparent p-0 w-full h-full max-w-none max-h-none backdrop:bg-white/80 backdrop:backdrop-blur-sm z-50"
+        onCancel={(e) => e.preventDefault()}
+      >
         <AdminDashboard currentUser={user} />
       </dialog>
 
@@ -388,6 +412,7 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
   const [locations, setLocations] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [showProductForm, setShowProductForm] = useState(false);
   const [showLocationForm, setShowLocationForm] = useState(false);
 
@@ -421,10 +446,19 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
     if (res.ok) setProducts(await res.json());
   };
 
+  const fetchCategories = async () => {
+    const res = await fetch("/api/categories/", { credentials: "include" });
+    if (res.ok) setCategories(await res.json());
+  };
+
   useEffect(() => {
     if (activeTab === "locations") fetchLocations();
     if (activeTab === "users") fetchUsers();
-    if (activeTab === "products") fetchProducts();
+    if (activeTab === "products") {
+      fetchProducts();
+      fetchLocations(); // Needed for initial inventory in create form
+      fetchCategories(); // Needed for categories select
+    }
   }, [activeTab]);
 
   const handleCreateLocation = async (e: any) => {
@@ -493,6 +527,7 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
           </div>
           <nav className="space-y-2 flex-grow">
             <button onClick={() => setActiveTab("products")} className={`w-full text-left px-4 py-3 rounded-xl font-bold flex items-center gap-3 transition-colors ${activeTab === "products" ? "bg-white shadow-sm text-[var(--color-primary)]" : "text-gray-500 hover:bg-gray-100"}`}><span>📦</span> Productos</button>
+            <button onClick={() => setActiveTab("categories")} className={`w-full text-left px-4 py-3 rounded-xl font-bold flex items-center gap-3 transition-colors ${activeTab === "categories" ? "bg-white shadow-sm text-[var(--color-primary)]" : "text-gray-500 hover:bg-gray-100"}`}><span>🏷️</span> Categorías</button>
             <button onClick={() => setActiveTab("orders")} className={`w-full text-left px-4 py-3 rounded-xl font-bold flex items-center gap-3 transition-colors ${activeTab === "orders" ? "bg-white shadow-sm text-[var(--color-primary)]" : "text-gray-500 hover:bg-gray-100"}`}><span>📃</span> Ordenes</button>
             <button onClick={() => setActiveTab("locations")} className={`w-full text-left px-4 py-3 rounded-xl font-bold flex items-center gap-3 transition-colors ${activeTab === "locations" ? "bg-white shadow-sm text-[var(--color-primary)]" : "text-gray-500 hover:bg-gray-100"}`}><span>📍</span> Sedes</button>
             <button onClick={() => setActiveTab("users")} className={`w-full text-left px-4 py-3 rounded-xl font-bold flex items-center gap-3 transition-colors ${activeTab === "users" ? "bg-white shadow-sm text-[var(--color-primary)]" : "text-gray-500 hover:bg-gray-100"}`}><span>👥</span> Usuarios</button>
@@ -500,6 +535,9 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
           <button onClick={() => (document.getElementById('owner_modal') as HTMLDialogElement)?.close()} className="mt-auto flex items-center gap-2 text-gray-400 hover:text-red-500 text-sm font-bold px-4 py-3 transition-colors">⛔ Cerrar</button>
         </div>
         <div className="flex-grow overflow-y-auto bg-white p-10">
+
+          {/* CATEGORIES TAB */}
+          {activeTab === "categories" && <CategoriesTab />}
 
           {/* PRODUCTS TAB */}
           {activeTab === "products" && (
@@ -514,6 +552,7 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
                 </button>
               </div>
 
+
               {/* CREATE PRODUCT FORM (Collapsible) */}
               {showProductForm && (
                 <div className="bg-gray-50 p-6 rounded-2xl mb-8">
@@ -525,7 +564,18 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
                     const desc = formData.get("pdesc");
                     const cat = formData.get("pcat");
                     const price = parseFloat(priceRaw.replace(/,/g, ""));
-                    const stock = parseInt(stockRaw);
+
+                    // Construct initial inventory
+                    const initial_inventory = locations
+                      .filter(loc => loc.is_active)
+                      .map(loc => {
+                        const val = formData.get(`stock_${loc._id}`);
+                        return {
+                          location_id: loc._id,
+                          quantity: val ? parseInt(val.toString()) : 0
+                        };
+                      })
+                      .filter(item => item.quantity > 0);
 
                     if (isNaN(price)) return alert("Invalid price");
 
@@ -536,7 +586,7 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
                         name,
                         description: desc,
                         price,
-                        stock: stock || 0,
+                        initial_inventory,
                         category: cat,
                         images: []
                       }),
@@ -545,7 +595,7 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
                     if (res.ok) {
                       e.target.reset();
                       setPriceRaw("");
-                      setStockRaw("0");
+                      // reset inputs dynamically if needed, but form reset handles it
                       setShowProductForm(false);
                       fetchProducts(); // Refresh product list
                     }
@@ -555,10 +605,11 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
                       <div><label className="block text-xs font-bold uppercase text-gray-500 mb-2">Nombre</label><input name="pname" className="w-full border p-3 rounded-xl" required /></div>
                       <div>
                         <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Categoría</label>
-                        <select name="pcat" className="w-full border p-3 rounded-xl bg-white">
-                          <option value="Tortas">Tortas</option>
-                          <option value="Postres">Postres</option>
-                          <option value="Bebidas">Bebidas</option>
+                        <select name="pcat" className="w-full border p-3 rounded-xl bg-white" required>
+                          <option value="">Seleccionar...</option>
+                          {categories.map(c => (
+                            <option key={c._id} value={c.name}>{c.name}</option>
+                          ))}
                         </select>
                       </div>
                     </div>
@@ -566,17 +617,39 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Precio ($)</label>
-                        <input type="text" value={priceRaw} onChange={(e) => setPriceRaw(e.target.value.replace(/[^0-9]/g, ''))} className="w-full border p-3 rounded-xl font-bold" required />
+                        <input type="text" value={priceRaw} onChange={(e) => setPriceRaw(e.target.value.replace(/[^0-9.]/g, ''))} className="w-full border p-3 rounded-xl font-bold" required />
                       </div>
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Stock Inicial</label>
-                        <input type="number" value={stockRaw} onChange={(e) => setStockRaw(e.target.value)} className="w-full border p-3 rounded-xl font-bold" required />
-                      </div>
+                      {/* Removed global stock input */}
                     </div>
+
+                    {/* Inventory per Location */}
+                    <div className="bg-white p-4 rounded-xl border border-gray-200">
+                      <h5 className="text-sm font-bold text-gray-500 uppercase mb-3">Inventario Inicial por Sede</h5>
+                      {locations.length === 0 ? (
+                        <p className="text-xs text-red-400">No hay sedes activas para asignar inventario.</p>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {locations.filter(l => l.is_active).map(loc => (
+                            <div key={loc._id} className="flex items-center gap-2">
+                              <label className="text-xs font-bold w-1/2 truncate" title={loc.name}>{loc.name}</label>
+                              <input
+                                type="number"
+                                name={`stock_${loc._id}`}
+                                placeholder="0"
+                                min="0"
+                                className="w-1/2 border p-2 rounded-lg text-sm text-center"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
                     <button type="submit" className="w-full bg-[var(--color-chocolate)] text-white p-3 rounded-xl font-bold hover:opacity-90">Guardar Producto</button>
                   </form>
                 </div>
               )}
+
 
               {/* PRODUCT LIST */}
               <div className="bg-white rounded-xl border overflow-hidden">
@@ -586,7 +659,7 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
                       <th className="py-3 px-4">Producto</th>
                       <th className="py-3 px-4">Categoría</th>
                       <th className="py-3 px-4">Precio</th>
-                      <th className="py-3 px-4">Stock</th>
+                      <th className="py-3 px-4">Stock Global</th>
                       <th className="py-3 px-4">Acciones</th>
                     </tr>
                   </thead>
@@ -607,6 +680,10 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
                           <span className={`font-bold ${p.stock > 10 ? 'text-green-600' : p.stock > 0 ? 'text-amber-600' : 'text-red-600'}`}>{p.stock}</span>
                         </td>
                         <td className="py-3 px-4">
+                          <InventoryManager
+                            product={p}
+                            onUpdate={() => fetchProducts()}
+                          />
                           <button
                             onClick={() => {
                               setEditProduct(p);
@@ -615,7 +692,7 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
                             }}
                             className="text-blue-600 hover:text-blue-800 text-sm font-bold mr-3"
                           >
-                            ✏️ Editar
+                            ✏️
                           </button>
                           <button
                             onClick={() => {
@@ -641,7 +718,7 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
                             }}
                             className="text-red-600 hover:text-red-800 text-sm font-bold"
                           >
-                            🗑️ Eliminar
+                            🗑️
                           </button>
                         </td>
                       </tr>
@@ -860,7 +937,7 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
               const desc = formData.get("pdesc");
               const cat = formData.get("pcat");
               const price = parseFloat(priceRaw.replace(/,/g, ""));
-              const stock = parseInt(stockRaw);
+              // Stock is managed via Inventory Manager, not here
 
               if (isNaN(price)) return alert("Invalid price");
 
@@ -871,7 +948,7 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
                   name,
                   description: desc,
                   price,
-                  stock: stock || 0,
+                  // stock: stock, // Removed
                   category: cat,
                   images: editProduct.images || [],
                   is_featured: editProduct.is_featured || false
@@ -893,10 +970,11 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
                 </div>
                 <div>
                   <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Categoría</label>
-                  <select name="pcat" defaultValue={editProduct.category} className="w-full border p-3 rounded-xl bg-white">
-                    <option value="Tortas">Tortas</option>
-                    <option value="Postres">Postres</option>
-                    <option value="Bebidas">Bebidas</option>
+                  <select name="pcat" defaultValue={editProduct.category} className="w-full border p-3 rounded-xl bg-white" required>
+                    <option value="">Seleccionar...</option>
+                    {categories.map((c: any) => (
+                      <option key={c._id} value={c.name}>{c.name}</option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -907,11 +985,12 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Precio ($)</label>
-                  <input type="text" value={priceRaw} onChange={(e) => setPriceRaw(e.target.value.replace(/[^0-9]/g, ''))} className="w-full border p-3 rounded-xl font-bold" required />
+                  <input type="text" value={priceRaw} onChange={(e) => setPriceRaw(e.target.value.replace(/[^0-9.]/g, ''))} className="w-full border p-3 rounded-xl font-bold" required />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Stock</label>
-                  <input type="number" value={stockRaw} onChange={(e) => setStockRaw(e.target.value)} className="w-full border p-3 rounded-xl font-bold" required />
+                  <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Stock Total (Sedes)</label>
+                  <input type="number" value={editProduct.stock} disabled className="w-full border p-3 rounded-xl font-bold bg-gray-100 text-gray-500 cursor-not-allowed" />
+                  <p className="text-[10px] text-blue-500 mt-1 font-bold">Gestionar en "📦 Inventario"</p>
                 </div>
               </div>
               <div className="flex gap-3 pt-4">

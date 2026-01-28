@@ -106,7 +106,8 @@ async def init_db():
         "app.models.Patient",
         "app.models.ClinicalRecord",
         "app.models_location.Location",
-        "app.models_location.Inventory"
+        "app.models_location.Inventory",
+        "app.models.Category"
     ])
     await seed_modules()
     await seed_default_tenant()

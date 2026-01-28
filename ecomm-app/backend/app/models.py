@@ -48,6 +48,12 @@ class Module(Document):
     
     class Settings:
         name = "modules"
+class Category(Document):
+    name: str
+    tenant_id: str
+    
+    class Settings:
+        name = "categories"
 
 class Product(Document):
     name: str
