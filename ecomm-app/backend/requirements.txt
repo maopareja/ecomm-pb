@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+beanie
+motor
+pydantic-settings
+python-jose[cryptography]
+passlib[bcrypt]
+bcrypt==3.2.2
+redis
+celery
+python-multipart
+websockets
+# For local dev
+ipython
