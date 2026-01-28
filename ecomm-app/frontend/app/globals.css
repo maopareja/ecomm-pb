@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+:root {
+  /* PB Pasteles - Red Corporate Palette (Pinecrest Style) */
+  --color-primary: #E31C23;
+  /* Vibrant Red */
+  --color-secondary: #FFFFFF;
+  /* White */
+  --color-accent: #FFC72C;
+  /* Gold/Yellow Accent */
+  --color-chocolate: #1A1A1A;
+  /* Black/Dark Grey Text */
+
+  --background: #FFFFFF;
+  /* White Background */
+  --foreground: #1A1A1A;
+  /* Dark Text */
+}
+
+@theme inline {
+  --color-primary: var(--color-primary);
+  --color-secondary: var(--color-secondary);
+  --color-accent: var(--color-accent);
+  --color-chocolate: var(--color-chocolate);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
