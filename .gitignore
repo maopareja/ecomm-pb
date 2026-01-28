@@ -203,14 +203,20 @@ datasets/
 models/
 checkpoints/
 
-# ============================================
-# Project Specific
-# ============================================
-# Gemini/Antigravity artifacts (if you don't want to track them)
-.gemini/
+# Service-specific data directories (Universal)
+**/data/
+**/mongodb/data/
+**/rabbitmq/data/
+**/rabbitmq/log/
+**/redis/data/
+**/postgres/data/
 
-# HAProxy certificates (regenerate locally)
-ecomm-pb/ecomm-app/haproxy/certs/*.pem
-
-# Keep structure files but ignore content
-!.gitkeep
+# Specific paths just in case
+ecomm-app/mongodb/data/*
+ecomm-app/rabbitmq/data/*
+ecomm-app/rabbitmq/log/*
+ecomm-app/frontend/node_modules/
+ecomm-app/frontend/.next/
+ecomm-app/backend/**/__pycache__/
+pb_proposal/node_modules/
+pb_proposal/.next/
