@@ -1,17 +1,17 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from app.database import init_db
-from app.routers import auth, products, cart, checkout, modules, vet, clients, clinical_records, patients, clinical_records_summary, locations, users, categories
+from app.routers import auth, products, cart, checkout, modules, vet, clients, clinical_records, patients, clinical_records_summary, locations, users, categories, upload
 from app.config import settings
 import redis.asyncio as aioredis
 import asyncio
 
 app = FastAPI()
 
-# CORS for Frontend (supports both localhost and vetnexus.local for development)
+# CORS for Frontend
 app.add_middleware(
     CORSMiddleware,
-    # Allow specific origins for credentials support (Wildcard allowed only if credentials=False)
     allow_origin_regex=r"^https?://(localhost|ecommpb\.local|vetnexus\.local)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
@@ -22,6 +22,11 @@ app.add_middleware(
 async def on_startup():
     await init_db()
 
+# Mount static files
+# HAProxy routes /api/static -> Backend /static (because of strip prefix)
+# So we mount matching the STRIPPED path.
+app.mount("/static", StaticFiles(directory="app/static_uploads"), name="static")
+
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
 app.include_router(modules.router, prefix="/modules", tags=["Modules"])
 app.include_router(products.router, prefix="/products", tags=["Products"])
@@ -30,6 +35,7 @@ app.include_router(checkout.router, prefix="/checkout", tags=["Checkout"])
 app.include_router(locations.router, prefix="/locations", tags=["Locations"])
 app.include_router(users.router, prefix="/users", tags=["Users"])
 app.include_router(categories.router, prefix="/categories", tags=["Categories"])
+app.include_router(upload.router, prefix="/upload", tags=["Uploads"])
 app.include_router(vet.router, prefix="/vet", tags=["Vet"])
 app.include_router(clients.router, prefix="/clients", tags=["Clients"])
 app.include_router(clinical_records.router, prefix="/clinical-records", tags=["Clinical Records CRUD"])

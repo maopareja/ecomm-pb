@@ -17,7 +17,9 @@ export default function TenantStore() {
 
   const [user, setUser] = useState<any>(null);
   const [currentCart, setCurrentCart] = useState<any>({});
-  const [categories, setCategories] = useState<any[]>([]); // New state
+  const [categories, setCategories] = useState<any[]>([]);
+  const [locations, setLocations] = useState<any[]>([]); // New: Locations
+  const [selectedLocation, setSelectedLocation] = useState(""); // New: Filter
 
   // Auth States
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -29,6 +31,7 @@ export default function TenantStore() {
   useEffect(() => {
     fetchUser();
     fetchCategories();
+    fetchLocations(); // Fetch locations
     fetchProducts();
     fetchCart();
   }, []);
@@ -55,10 +58,22 @@ export default function TenantStore() {
       .catch(console.error);
   };
 
+  const fetchLocations = () => {
+    fetch("/api/locations/", { credentials: "include" })
+      .then(res => res.ok ? res.json() : [])
+      .then(setLocations)
+      .catch(console.error);
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, [searchQuery, categoryFilter, selectedLocation]); // Trigger on filter change
+
   const fetchProducts = () => {
     let url = "/api/products/?";
     if (searchQuery) url += `q=${searchQuery}&`;
     if (categoryFilter) url += `category=${categoryFilter}&`;
+    if (selectedLocation) url += `location_id=${selectedLocation}&`;
 
     fetch(url, { credentials: "include" })
       .then(res => res.ok ? res.json() : [])
@@ -160,15 +175,29 @@ export default function TenantStore() {
           </div>
 
           {/* Search Bar */}
-          <div className="flex-grow max-w-xl relative hidden md:block">
-            <input
-              type="text"
-              placeholder="Buscar postres, tortas..."
-              className="w-full pl-12 pr-4 py-2.5 rounded-full bg-gray-100 border-none focus:ring-2 focus:ring-[var(--color-primary)] focus:bg-white transition-all outline-none"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+          <div className="flex-grow max-w-xl relative hidden md:flex items-center gap-4">
+            {/* Store Selector */}
+            <select
+              value={selectedLocation}
+              onChange={(e) => setSelectedLocation(e.target.value)}
+              className="bg-white/90 border-0 rounded-full px-4 py-2.5 text-sm font-bold text-[var(--color-chocolate)] hover:bg-white transition-all cursor-pointer focus:ring-0"
+            >
+              <option value="">🏠 Todas las Sedes</option>
+              {locations.filter((l: any) => l.is_active).map((l: any) => (
+                <option key={l._id} value={l._id}>📍 {l.name}</option>
+              ))}
+            </select>
+
+            <div className="relative flex-grow">
+              <input
+                type="text"
+                placeholder="Buscar postres, tortas..."
+                className="w-full pl-12 pr-4 py-2.5 rounded-full bg-gray-100 border-none focus:ring-2 focus:ring-[var(--color-primary)] focus:bg-white transition-all outline-none"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+            </div>
           </div>
 
           {/* Actions */}
@@ -288,9 +317,17 @@ export default function TenantStore() {
                     <span className="absolute top-4 right-4 bg-gray-500 text-white text-xs font-bold px-3 py-1 rounded-full z-10">Agotado</span>
                   )}
 
-                  <div className="w-full h-full bg-[var(--color-secondary)]/30 flex items-center justify-center text-4xl group-hover:scale-110 transition-transform duration-500">
-                    🧁
-                  </div>
+                  {p.images && p.images.length > 0 ? (
+                    <img
+                      src={p.images[0]}
+                      alt={p.name}
+                      className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-[var(--color-secondary)]/30 flex items-center justify-center text-4xl group-hover:scale-110 transition-transform duration-500">
+                      🧁
+                    </div>
+                  )}
                 </div>
 
                 <div className="p-6 flex flex-col flex-grow">
@@ -430,6 +467,32 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
   // Product Form State
   const [priceRaw, setPriceRaw] = useState("");
   const [stockRaw, setStockRaw] = useState("");
+  const [newProductImage, setNewProductImage] = useState(""); // URL of uploaded image
+
+  const handleFileUpload = async (e: any, setUrl: (url: string) => void) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload/", {
+        method: "POST",
+        body: formData,
+        credentials: "include"
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUrl(data.url); // Set the URL in state
+      } else {
+        alert("Error uploading image");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Upload failed");
+    }
+  };
 
   const fetchLocations = async () => {
     const res = await fetch("/api/locations/", { credentials: "include" });
@@ -588,13 +651,14 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
                         price,
                         initial_inventory,
                         category: cat,
-                        images: []
+                        images: newProductImage ? [newProductImage] : []
                       }),
                       credentials: "include"
                     });
                     if (res.ok) {
                       e.target.reset();
                       setPriceRaw("");
+                      setNewProductImage(""); // Reset image
                       // reset inputs dynamically if needed, but form reset handles it
                       setShowProductForm(false);
                       fetchProducts(); // Refresh product list
@@ -619,7 +683,22 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
                         <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Precio ($)</label>
                         <input type="text" value={priceRaw} onChange={(e) => setPriceRaw(e.target.value.replace(/[^0-9.]/g, ''))} className="w-full border p-3 rounded-xl font-bold" required />
                       </div>
-                      {/* Removed global stock input */}
+                    </div>
+
+                    {/* Image Upload */}
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Imagen del Producto</label>
+                      <div className="flex items-center gap-4">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileUpload(e, setNewProductImage)}
+                          className="w-full border p-3 rounded-xl bg-white"
+                        />
+                        {newProductImage && (
+                          <img src={newProductImage} alt="Preview" className="w-16 h-16 object-cover rounded-lg border shadow-sm" />
+                        )}
+                      </div>
                     </div>
 
                     {/* Inventory per Location */}
@@ -991,6 +1070,22 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
                   <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Stock Total (Sedes)</label>
                   <input type="number" value={editProduct.stock} disabled className="w-full border p-3 rounded-xl font-bold bg-gray-100 text-gray-500 cursor-not-allowed" />
                   <p className="text-[10px] text-blue-500 mt-1 font-bold">Gestionar en "📦 Inventario"</p>
+                </div>
+              </div>
+
+              {/* Image Upload for Edit */}
+              <div>
+                <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Imagen del Producto</label>
+                <div className="flex items-center gap-4">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileUpload(e, (url) => setEditProduct({ ...editProduct, images: [url] }))}
+                    className="w-full border p-3 rounded-xl bg-white"
+                  />
+                  {editProduct.images && editProduct.images.length > 0 && (
+                    <img src={editProduct.images[0]} alt="Preview" className="w-16 h-16 object-cover rounded-lg border shadow-sm" />
+                  )}
                 </div>
               </div>
               <div className="flex gap-3 pt-4">

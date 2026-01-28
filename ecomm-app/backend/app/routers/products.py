@@ -25,7 +25,8 @@ class ProductCreate(BaseModel):
 async def list_products(
     tenant: Tenant = Depends(require_tenant),
     q: Optional[str] = None,
-    category: Optional[str] = None
+    category: Optional[str] = None,
+    location_id: Optional[str] = None
 ):
     # Base criteria
     criteria = [Product.tenant_id == str(tenant.id)]
@@ -35,6 +36,18 @@ async def list_products(
         
     products = await Product.find(*criteria).to_list()
     
+    # If location is selected, override stock with location specific inventory
+    if location_id:
+        from app.models_location import Inventory
+        # Fetch all inventory for this location
+        inventories = await Inventory.find(Inventory.location_id == location_id).to_list()
+        # Map product_id -> quantity
+        inv_map = {i.product_id: i.quantity for i in inventories}
+        
+        for p in products:
+            # Update stock in memory for response
+            p.stock = inv_map.get(str(p.id), 0)
+
     # In-memory search for MVP (Beanie text search requires index setup)
     if q:
         q_lower = q.lower()
