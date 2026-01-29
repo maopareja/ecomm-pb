@@ -167,6 +167,7 @@ temp/
 .secrets/
 credentials.json
 service-account.json
+ecomm-app/haproxy/certs/
 
 # ============================================
 # Large files (multimedia, datasets)

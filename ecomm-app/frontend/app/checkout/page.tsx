@@ -9,6 +9,7 @@ export default function CheckoutPage() {
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(false); // Payment processing state
+    const [showClearModal, setShowClearModal] = useState(false); // Modal state
 
     // Checkout Form
     const [formData, setFormData] = useState({
@@ -26,6 +27,7 @@ export default function CheckoutPage() {
     }, []);
 
     const fetchCartAndProducts = async () => {
+        // ... same fetchCart
         let sessionId = localStorage.getItem("session_id");
         if (!sessionId) {
             setLoading(false);
@@ -61,9 +63,36 @@ export default function CheckoutPage() {
         return total;
     };
 
+    const handleClearCart = () => {
+        setShowClearModal(true);
+    };
+
+    const confirmClearCart = async () => {
+        let sessionId = localStorage.getItem("session_id");
+        if (!sessionId) return;
+
+
+        try {
+            const res = await fetch("/api/cart/", {
+                method: "DELETE",
+                headers: { "x-session-id": sessionId }
+            });
+
+            if (res.ok) {
+                setCart({});
+                setShowClearModal(false);
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Error al vaciar carrito");
+        }
+    };
+
     const handleCheckout = async (e: React.FormEvent) => {
         e.preventDefault();
         setProcessing(true);
+        // ... rest of handleCheckout
+
 
         let sessionId = localStorage.getItem("session_id");
 
@@ -151,6 +180,12 @@ export default function CheckoutPage() {
                                     <span>Total</span>
                                     <span className="text-[var(--color-primary)]">${total.toLocaleString()}</span>
                                 </div>
+                                <button
+                                    onClick={handleClearCart}
+                                    className="mt-6 w-full py-3 rounded-xl text-red-500 font-bold border-2 border-dashed border-red-100 hover:bg-red-50 hover:border-red-300 text-sm transition-all"
+                                >
+                                    🗑️ Vaciar Carrito
+                                </button>
                             </div>
                         </div>
 
@@ -210,8 +245,8 @@ export default function CheckoutPage() {
                                     type="submit"
                                     disabled={processing}
                                     className={`w-full py-4 rounded-xl font-bold text-white text-lg shadow-lg transition-all transform active:scale-[0.98] ${processing
-                                            ? 'bg-gray-400 cursor-wait'
-                                            : 'bg-[var(--color-chocolate)] hover:bg-[var(--color-primary)]'
+                                        ? 'bg-gray-400 cursor-wait'
+                                        : 'bg-[var(--color-chocolate)] hover:bg-[var(--color-primary)]'
                                         }`}
                                 >
                                     {processing ? "Procesando Pago..." : `Pagar $${total.toLocaleString()}`}
@@ -222,6 +257,40 @@ export default function CheckoutPage() {
                     </div>
                 )}
             </main>
+
+            {/* Confirmation Modal */}
+            {showClearModal && (
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+                    <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl scale-100 animate-in zoom-in-95 duration-300 text-center border-4 border-red-50 relative overflow-hidden">
+                        {/* Decorative background element */}
+                        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-red-400 to-pink-500"></div>
+
+                        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                            🗑️
+                        </div>
+
+                        <h3 className="text-2xl font-bold text-[var(--color-chocolate)] mb-2">¿Vaciar Carrito?</h3>
+                        <p className="text-gray-500 mb-8 px-4">
+                            Perderás todas las delicias que has seleccionado. ¿Estás seguro?
+                        </p>
+
+                        <div className="flex gap-4">
+                            <button
+                                onClick={() => setShowClearModal(false)}
+                                className="flex-1 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={confirmClearCart}
+                                className="flex-1 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-red-500 to-pink-500 hover:shadow-lg hover:scale-105 transition-all"
+                            >
+                                Sí, vaciar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -109,7 +109,7 @@ export default function TenantStore() {
       localStorage.setItem("session_id", sessionId);
     }
 
-    const res = await fetch("/api/cart", {
+    const res = await fetch("/api/cart/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -128,6 +128,8 @@ export default function TenantStore() {
       setTimeout(() => setCartMsg(""), 3000);
     }
   };
+
+
 
   const handleAuth = async (e: React.FormEvent, type: 'login' | 'register') => {
     e.preventDefault();
@@ -214,6 +216,7 @@ export default function TenantStore() {
               <button onClick={() => setIsLoginModalOpen(true)} className="font-bold hover:text-[var(--color-primary)] transition-colors">Ingresar</button>
             )}
 
+            {/* Cart Icon with Dropdown */}
             {/* Cart Icon */}
             <Link href="/checkout" className="relative group">
               <div className="p-3 bg-[var(--color-primary)] text-white rounded-full hover:shadow-lg hover:scale-105 transition-all shadow-md">

@@ -55,3 +55,18 @@ async def get_cart(
     r = await get_redis()
     key = f"cart:{tenant.slug}:{session_id}"
     return await r.hgetall(key)
+
+@router.delete("/")
+async def clear_cart(
+    request: Request,
+    tenant: Tenant = Depends(require_tenant)
+):
+    session_id = request.headers.get("x-session-id")
+    if not session_id:
+        return {"message": "No session"}
+        
+    r = await get_redis()
+    key = f"cart:{tenant.slug}:{session_id}"
+    await r.delete(key)
+    
+    return {"message": "Cart cleared"}

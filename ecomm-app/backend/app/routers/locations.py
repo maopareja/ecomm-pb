@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import List
 from app.models_location import Location, Inventory
-from app.models import User, UserRole
-from app.dependencies import get_current_user
+from app.models import User, UserRole, Tenant
+from app.dependencies import get_current_user, require_tenant
 from app.permissions import require_role
 from pydantic import BaseModel
 from datetime import datetime
@@ -49,21 +49,9 @@ async def create_location(
 
 @router.get("/", response_model=List[Location])
 async def list_locations(
-    user: User = Depends(get_current_user)
+    tenant: Tenant = Depends(require_tenant)
 ):
-    # Determine tenant from user
-    from app.models import Tenant
-    
-    if user.tenant:
-        tenant_id = str(user.tenant.id)
-    else:
-        # Fallback to default tenant for single-tenant mode
-        default_tenant = await Tenant.find_one(Tenant.slug == "ecomm-pb")
-        if not default_tenant:
-            return []  # Return empty list if no tenant configured
-        tenant_id = str(default_tenant.id)
-    
-    return await Location.find(Location.tenant_id == tenant_id).to_list()
+    return await Location.find(Location.tenant_id == str(tenant.id)).to_list()
 
 @router.delete("/{location_id}")
 async def delete_location(
