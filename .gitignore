@@ -221,3 +221,6 @@ ecomm-app/frontend/.next/
 ecomm-app/backend/**/__pycache__/
 pb_proposal/node_modules/
 pb_proposal/.next/
+
+# Backups
+**/mongodb/data_backup_v6/
