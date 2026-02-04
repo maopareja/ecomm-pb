@@ -45,6 +45,9 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - RABBITMQ_URL=amqp://mpbadmin:Elverde.1978%25@rabbitmq:5672//
       - DATABASE_NAME=ecomm
+    networks:
+      - default
+      - pbuniversity-net
 
   frontend:
     build: ./frontend
@@ -59,6 +62,9 @@ services:
       - /app/node_modules
       - /app/.next
     command: npm run start
+    networks:
+      - default
+      - pbuniversity-net
 
   worker:
     build: ./backend
@@ -76,16 +82,24 @@ services:
       - RABBITMQ_URL=amqp://mpbadmin:Elverde.1978%25@rabbitmq:5672//
       - DATABASE_NAME=ecomm
 
-#   haproxy:
-#     image: haproxy:2.4
-#     container_name: ecomm_haproxy
-#     ports:
-#       - "80:80"
-#       - "443:443"
-#       - "9990:80" # Local access port
-#     volumes:
-#       - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
-#       - ./haproxy/certs:/usr/local/etc/haproxy/certs:ro
-#     depends_on:
-#       - backend
-#       - frontend
+  haproxy:
+    image: haproxy:2.4
+    container_name: ecomm_haproxy
+    profiles: [ "local" ]
+    ports:
+      - "80:80"
+      - "443:443"
+      - "9990:80" # Local access port
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ./haproxy/certs:/usr/local/etc/haproxy/certs:ro
+    depends_on:
+      - backend
+      - frontend
+
+networks:
+  default:
+    name: ecomm-app_default
+  pbuniversity-net:
+    external: true
+    name: pbuniversity-net
