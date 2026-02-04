@@ -52,7 +52,10 @@ services:
       - pbuniversity-net
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_BASE_PATH: /prjzdev1092
     container_name: ecomm_frontend
     ports:
       - "9090:3000"
