@@ -13,12 +13,14 @@ services:
   redis:
     image: redis:7
     container_name: ecomm_redis
+    profiles: [ "local" ]
     ports:
       - "6480:6379"
 
   rabbitmq:
     image: rabbitmq:3-management
     container_name: ecomm_rabbit
+    profiles: [ "local" ]
     ports:
       - "5773:5672"
       - "16673:15672"
@@ -70,6 +72,7 @@ services:
   worker:
     build: ./backend
     container_name: ecomm_worker
+    profiles: [ "local" ]
     command: [ "celery", "-A", "app.celery_worker.celery_app", "worker", "--loglevel=info" ]
     depends_on:
       - mongo
