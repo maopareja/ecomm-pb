@@ -35,8 +35,8 @@ services:
     container_name: ecomm_backend
     depends_on:
       - mongo
-      - redis
-      - rabbitmq
+      # - redis
+      # - rabbitmq
     volumes:
       - ./backend:/app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
