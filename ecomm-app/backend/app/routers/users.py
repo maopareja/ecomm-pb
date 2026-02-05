@@ -83,3 +83,22 @@ async def create_user(
         role=user.role
     )
 
+@router.delete("/{user_id}")
+async def delete_user(
+    user_id: str,
+    admin: User = Depends(require_role([UserRole.OWNER, UserRole.ADMIN]))
+):
+    target_user = await User.get(user_id)
+    if not target_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Critical Protection: Prevent self-deletion if they are an Owner or Admin
+    if str(target_user.id) == str(admin.id):
+        raise HTTPException(status_code=400, detail="Cannot delete your own user account")
+    
+    # Prevent deleting an OWNER if the requester is just an ADMIN
+    if target_user.role == UserRole.OWNER and admin.role != UserRole.OWNER:
+        raise HTTPException(status_code=403, detail="Admins cannot delete Owners")
+
+    await target_user.delete()
+    return {"status": "success", "message": "User deleted"}

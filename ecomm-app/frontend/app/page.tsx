@@ -473,6 +473,7 @@ function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCart
   const [categories, setCategories] = useState<any[]>([]);
   const [showProductForm, setShowProductForm] = useState(false);
   const [showLocationForm, setShowLocationForm] = useState(false);
+  const [showUserForm, setShowUserForm] = useState(false);
 
   // Confirmation Modal
   const [confirmModal, setConfirmModal] = useState<{
@@ -593,14 +594,14 @@ function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCart
       credentials: "include"
     });
     if (res.ok) {
-      e.target.reset();
-      fetchUsers();
-      alert("Usuario creado exitosamente");
+      setCartMsg("✅ Usuario creado exitosamente");
+      setTimeout(() => setCartMsg(""), 3000);
     } else {
       const d = await res.json();
-      alert("Error: " + d.detail);
+      setCartMsg("❌ Error: " + (d.detail || "Error al crear usuario"));
+      setTimeout(() => setCartMsg(""), 3000);
     }
-  };
+  }
 
   return (
     <div className="fixed inset-0 flex items-center justify-center p-4">
@@ -619,7 +620,7 @@ function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCart
             <button onClick={() => setActiveTab("users")} className={`w-full text-left px-4 py-3 rounded-xl font-bold flex items-center gap-3 transition-colors ${activeTab === "users" ? "bg-white shadow-sm text-[var(--color-primary)]" : "text-gray-500 hover:bg-gray-100"}`}><span>👥</span> Usuarios</button>
           </nav>
           <button onClick={() => (document.getElementById('owner_modal') as HTMLDialogElement)?.close()} className="mt-auto flex items-center gap-2 text-gray-400 hover:text-red-500 text-sm font-bold px-4 py-3 transition-colors">⛔ Cerrar</button>
-        </div>
+        </div >
         <div className="flex-grow overflow-y-auto bg-white p-10">
 
           {/* CATEGORIES TAB */}
@@ -1051,95 +1052,139 @@ function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCart
           {/* USERS TAB */}
           {activeTab === "users" && (
             <div className="max-w-6xl mx-auto">
-              <div className="flex gap-8">
-                {/* CREATE USER FORM */}
-                <div className="w-1/3 bg-gray-50 p-6 rounded-2xl h-fit">
-                  <h4 className="font-bold mb-4">Nuevo Usuario</h4>
-                  <form onSubmit={handleCreateUser} className="space-y-4">
-                    <input name="uEmail" type="email" placeholder="Email" className="w-full p-3 border rounded-xl" required />
-                    <input name="uPass" type="password" placeholder="Contraseña" className="w-full p-3 border rounded-xl" required />
-                    <select name="uRole" className="w-full p-3 border rounded-xl bg-white">
+              {/* Header with Expand Button */}
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-bold text-[var(--color-chocolate)]">Gestión de Usuarios</h3>
+                <button
+                  onClick={() => setShowUserForm(!showUserForm)}
+                  className="bg-[var(--color-primary)] text-white px-4 py-2 rounded-xl font-bold hover:opacity-90"
+                >
+                  {showUserForm ? "Ocultar Formulario" : "+ Nuevo Usuario"}
+                </button>
+              </div>
+
+              {/* CREATE USER FORM (Collapsible) */}
+              {showUserForm && (
+                <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 shadow-sm mb-8">
+                  <h4 className="font-bold text-[var(--color-chocolate)] mb-4">Nuevo Usuario</h4>
+                  <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                    <input name="uEmail" type="email" placeholder="Email" className="md:col-span-4 p-2.5 border rounded-xl text-sm" required />
+                    <input name="uPass" type="password" placeholder="Contraseña" className="md:col-span-3 p-2.5 border rounded-xl text-sm" required />
+                    <select name="uRole" className="md:col-span-3 p-2.5 border rounded-xl bg-white focus:ring-0 outline-none text-sm">
                       <option value="CUSTOMER">Cliente</option>
                       <option value="SALES">Ventas (Cajero)</option>
                       <option value="INVENTORY_MANAGER">Inventario</option>
                       <option value="PRODUCT_MANAGER">Manager Productos</option>
                       <option value="ADMIN">Administrador</option>
                     </select>
-                    <button type="submit" className="w-full bg-[var(--color-chocolate)] text-white font-bold py-3 rounded-xl hover:opacity-90">Crear Usuario</button>
+                    <button type="submit" className="md:col-span-2 bg-[var(--color-chocolate)] text-white font-bold py-2.5 rounded-xl hover:opacity-90 text-sm">
+                      Crear
+                    </button>
                   </form>
                 </div>
+              )}
 
-                {/* USER LIST */}
-                <div className="w-2/3">
-                  <h3 className="text-2xl font-bold text-[var(--color-chocolate)] mb-6">Usuarios Registrados</h3>
-                  <div className="bg-white rounded-xl border overflow-hidden">
-                    <table className="w-full text-left">
-                      <thead className="bg-gray-50">
-                        <tr className="text-xs font-bold uppercase text-gray-400">
-                          <th className="py-3 px-4">Email</th>
-                          <th className="py-3 px-4">Rol</th>
-                          <th className="py-3 px-4">Acciones</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {users.map(u => (
-                          <tr key={u.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
-                            <td className="py-3 px-4 font-bold text-sm">{u.email}</td>
-                            <td className="py-3 px-4">
-                              <span className={`px-2 py-1 rounded-full text-xs font-bold ${u.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}`}>
-                                {u.role}
-                              </span>
-                            </td>
-                            <td className="py-3 px-4">
-                              <select
-                                defaultValue={u.role}
-                                onChange={(e) => handleRoleUpdate(u.id, e.target.value)}
-                                className="bg-white border border-gray-300 rounded-lg text-xs px-2 py-1"
-                              >
-                                {["OWNER", "ADMIN", "PRODUCT_MANAGER", "INVENTORY_MANAGER", "SALES", "CUSTOMER"].map(r => (
-                                  <option key={r} value={r}>{r}</option>
-                                ))}
-                              </select>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+              {/* LIST - BOTTOM */}
+              <div className="bg-white rounded-xl border overflow-hidden shadow-sm">
+                <table className="w-full text-left">
+                  <thead className="bg-gray-50 border-b">
+                    <tr className="text-xs font-bold uppercase text-gray-400">
+                      <th className="py-3 px-6">Email</th>
+                      <th className="py-3 px-6">Rol</th>
+                      <th className="py-3 px-6 text-right">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.length === 0 ? (
+                      <tr><td colSpan={3} className="py-12 text-center text-gray-400 font-medium">No hay usuarios registrados.</td></tr>
+                    ) : users.map(u => (
+                      <tr key={u.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors">
+                        <td className="py-4 px-6 font-bold text-sm text-gray-700">{u.email}</td>
+                        <td className="py-4 px-6">
+                          <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${u.role === 'OWNER' ? 'bg-red-100 text-red-700 border border-red-200' : u.role === 'ADMIN' ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-blue-50 text-blue-600 border border-blue-100'}`}>
+                            {u.role}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6 flex items-center gap-3 justify-end">
+                          <select
+                            defaultValue={u.role}
+                            onChange={(e) => handleRoleUpdate(u.id, e.target.value)}
+                            className="bg-gray-50 border border-gray-200 rounded-lg text-[10px] font-bold px-2 py-1 focus:ring-0 outline-none cursor-pointer hover:bg-white transition-colors"
+                          >
+                            {["OWNER", "ADMIN", "PRODUCT_MANAGER", "INVENTORY_MANAGER", "SALES", "CUSTOMER"].map(r => (
+                              <option key={r} value={r}>{r}</option>
+                            ))}
+                          </select>
+                          {currentUser?.id !== u.id && (u.role !== 'OWNER' || currentUser?.role === 'OWNER') && (
+                            <button
+                              onClick={() => {
+                                setConfirmModal({
+                                  show: true,
+                                  title: 'Eliminar Usuario',
+                                  message: `¿Estás seguro de que deseas eliminar a "${u.email}"? Esta acción no se puede deshacer.`,
+                                  onConfirm: async () => {
+                                    setConfirmModal(prev => ({ ...prev, show: false }));
+                                    const res = await fetch(`${API_BASE}/api/users/${u.id}`, {
+                                      method: "DELETE",
+                                      credentials: "include"
+                                    });
+                                    if (res.ok) {
+                                      fetchUsers();
+                                      setCartMsg("✅ Usuario eliminado");
+                                      setTimeout(() => setCartMsg(""), 3000);
+                                    } else {
+                                      const d = await res.json();
+                                      setCartMsg("❌ Error: " + (d.detail || "Error al eliminar"));
+                                      setTimeout(() => setCartMsg(""), 3000);
+                                    }
+                                  }
+                                });
+                              }}
+                              className="text-red-500 hover:text-white font-black text-[10px] uppercase bg-red-50 px-3 py-1.5 rounded-lg hover:bg-red-600 transition-all shadow-sm active:scale-95"
+                            >
+                              Eliminar
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
 
         </div>
-      </div>
+      </div >
 
       {/* PREMIUM CONFIRMATION MODAL */}
-      {confirmModal.show && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-gray-100 animate-in zoom-in duration-200 text-center">
-            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-red-100">
-              <span className="text-4xl">⚠️</span>
-            </div>
-            <h3 className="text-2xl font-black text-gray-900 mb-3">{confirmModal.title}</h3>
-            <p className="text-gray-500 mb-8 leading-relaxed font-medium">{confirmModal.message}</p>
-            <div className="flex gap-4">
-              <button
-                onClick={() => setConfirmModal({ show: false, title: '', message: '', onConfirm: () => { } })}
-                className="flex-1 px-6 py-4 bg-gray-50 text-gray-600 rounded-2xl font-black hover:bg-gray-100 transition-all border border-gray-200 active:scale-95"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={confirmModal.onConfirm}
-                className="flex-1 px-6 py-4 bg-red-600 text-white rounded-2xl font-black hover:bg-red-700 shadow-lg shadow-red-200 transition-all active:scale-95"
-              >
-                Eliminar
-              </button>
+      {
+        confirmModal.show && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-gray-100 animate-in zoom-in duration-200 text-center">
+              <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-red-100">
+                <span className="text-4xl">⚠️</span>
+              </div>
+              <h3 className="text-2xl font-black text-gray-900 mb-3">{confirmModal.title}</h3>
+              <p className="text-gray-500 mb-8 leading-relaxed font-medium">{confirmModal.message}</p>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setConfirmModal({ show: false, title: '', message: '', onConfirm: () => { } })}
+                  className="flex-1 px-6 py-4 bg-gray-50 text-gray-600 rounded-2xl font-black hover:bg-gray-100 transition-all border border-gray-200 active:scale-95"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmModal.onConfirm}
+                  className="flex-1 px-6 py-4 bg-red-600 text-white rounded-2xl font-black hover:bg-red-700 shadow-lg shadow-red-200 transition-all active:scale-95"
+                >
+                  Eliminar
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* EDIT PRODUCT MODAL */}
       {
