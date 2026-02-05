@@ -4,25 +4,24 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { InventoryManager } from './InventoryManager';
 
-const getApiBase = () => {
-  // 1. Try environment variable (injected during build)
-  const envBase = process.env.NEXT_PUBLIC_BASE_PATH || '';
-  if (envBase) return envBase;
-
-  // 2. Client-side fallback: Detect from current URL if we are in the known subpath
-  if (typeof window !== 'undefined') {
-    if (window.location.pathname.startsWith('/prjzdev1092')) {
-      return '/prjzdev1092';
-    }
-  }
-  return '';
-};
-
-const API_BASE = getApiBase();
-console.log('🚀 API_BASE initialized as:', API_BASE);
-
 // PB Pasteles Store
 export default function TenantStore() {
+  const [apiBase, setApiBase] = useState("");
+
+  useEffect(() => {
+    // Determine API_BASE on client side mount
+    const envBase = process.env.NEXT_PUBLIC_BASE_PATH || '';
+    if (envBase) {
+      setApiBase(envBase);
+    } else if (typeof window !== 'undefined' && window.location.pathname.startsWith('/prjzdev1092')) {
+      setApiBase('/prjzdev1092');
+    } else {
+      setApiBase('');
+    }
+  }, []);
+
+  const API_BASE = apiBase; // Alias for compatibility with existing code
+
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -443,31 +442,33 @@ export default function TenantStore() {
         className="modal bg-transparent p-0 w-full h-full max-w-none max-h-none backdrop:bg-white/80 backdrop:backdrop-blur-sm z-50"
         onCancel={(e) => e.preventDefault()}
       >
-        <AdminDashboard currentUser={user} setCartMsg={setCartMsg} />
+        <AdminDashboard currentUser={user} setCartMsg={setCartMsg} apiBase={API_BASE} />
       </dialog>
 
 
       {/* Admin panel access for users with management roles */}
-      {(() => {
-        console.log('🔍 DEBUG User object:', user);
-        console.log('🔍 user.role:', user?.role);
-        console.log('🔍 user.is_owner:', user?.is_owner);
-        const hasAccess = user && (user.is_owner || ['OWNER', 'ADMIN', 'PRODUCT_MANAGER', 'INVENTORY_MANAGER'].includes(user.role));
-        console.log('🔍 hasAccess:', hasAccess);
-        return hasAccess;
-      })() && (
+      {
+        (() => {
+          console.log('🔍 DEBUG User object:', user);
+          console.log('🔍 user.role:', user?.role);
+          console.log('🔍 user.is_owner:', user?.is_owner);
+          const hasAccess = user && (user.is_owner || ['OWNER', 'ADMIN', 'PRODUCT_MANAGER', 'INVENTORY_MANAGER'].includes(user.role));
+          console.log('🔍 hasAccess:', hasAccess);
+          return hasAccess;
+        })() && (
           <button
             onClick={() => (document.getElementById('owner_modal') as HTMLDialogElement)?.showModal()}
             className="fixed bottom-8 right-8 z-40 bg-[var(--color-chocolate)] w-14 h-14 rounded-full flex items-center justify-center shadow-2xl text-white text-2xl hover:scale-110 transition-transform border-4 border-white"
           >
             🛠️
           </button>
-        )}
-    </div>
+        )
+      }
+    </div >
   );
 }
 
-function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCartMsg: (msg: string) => void }) {
+function AdminDashboard({ currentUser, setCartMsg, apiBase }: { currentUser: any, setCartMsg: (msg: string) => void, apiBase: string }) {
   const [activeTab, setActiveTab] = useState("products");
   const [locations, setLocations] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
@@ -501,7 +502,7 @@ function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCart
     formData.append("file", file);
 
     try {
-      const res = await fetch(`${API_BASE}/api/upload`, {
+      const res = await fetch(`${apiBase}/api/upload`, {
         method: "POST",
         body: formData,
         credentials: "include"
@@ -519,23 +520,23 @@ function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCart
   };
 
   const fetchLocations = async () => {
-    const res = await fetch(`${API_BASE}/api/locations`, { credentials: "include" });
+    const res = await fetch(`${apiBase}/api/locations`, { credentials: "include" });
     if (res.ok) setLocations(await res.json());
   };
 
   const fetchUsers = async () => {
-    const res = await fetch(`${API_BASE}/api/users`, { credentials: "include" });
+    const res = await fetch(`${apiBase}/api/users`, { credentials: "include" });
     if (res.ok) setUsers(await res.json());
   };
 
   const fetchProducts = async () => {
-    const res = await fetch(`${API_BASE}/api/products`, { credentials: "include" });
+    const res = await fetch(`${apiBase}/api/products`, { credentials: "include" });
     if (res.ok) setProducts(await res.json());
   };
 
   const fetchCategories = async () => {
-    console.log('📡 AdminDashboard: Fetching categories from:', `${API_BASE}/api/categories`);
-    const res = await fetch(`${API_BASE}/api/categories`, { credentials: "include" });
+    console.log('📡 AdminDashboard: Fetching categories from:', `${apiBase}/api/categories`);
+    const res = await fetch(`${apiBase}/api/categories`, { credentials: "include" });
     if (res.ok) setCategories(await res.json());
   };
 
@@ -556,7 +557,7 @@ function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCart
     const address = e.target.locAddress.value;
     const phone = e.target.locPhone?.value || "";
 
-    const res = await fetch(`${API_BASE}/api/locations`, {
+    const res = await fetch(`${apiBase}/api/locations`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, address, phone }),
@@ -573,7 +574,7 @@ function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCart
   };
 
   const handleRoleUpdate = async (userId: string, newRole: string) => {
-    const res = await fetch(`${API_BASE}/api/users/${userId}/role`, {
+    const res = await fetch(`${apiBase}/api/users/${userId}/role`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ role: newRole }),
@@ -589,7 +590,7 @@ function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCart
     const password = e.target.uPass.value;
     const role = e.target.uRole.value;
 
-    const res = await fetch(`${API_BASE}/api/users`, {
+    const res = await fetch(`${apiBase}/api/users`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password, role }),
@@ -643,7 +644,7 @@ function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCart
                     const name = (form.elements.namedItem('catName') as HTMLInputElement).value;
                     if (!name.trim()) return;
 
-                    const res = await fetch(`${API_BASE}/api/categories`, {
+                    const res = await fetch(`${apiBase}/api/categories`, {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ name }),
@@ -698,7 +699,7 @@ function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCart
                                   message: `¿Estás seguro de que deseas eliminar la categoría "${cat.name}"?`,
                                   onConfirm: async () => {
                                     setConfirmModal(prev => ({ ...prev, show: false }));
-                                    const res = await fetch(`${API_BASE}/api/categories/${cat._id}`, {
+                                    const res = await fetch(`${apiBase}/api/categories/${cat._id}`, {
                                       method: "DELETE",
                                       credentials: "include"
                                     });
@@ -771,7 +772,7 @@ function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCart
                       return;
                     }
 
-                    const res = await fetch(`${API_BASE}/api/products`, {
+                    const res = await fetch(`${apiBase}/api/products`, {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({
@@ -914,7 +915,7 @@ function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCart
                                 message: `Confirma que deseas eliminar "${p.name}". Esta acción no se puede deshacer.`,
                                 onConfirm: async () => {
                                   setConfirmModal(prev => ({ ...prev, show: false }));
-                                  const res = await fetch(`${API_BASE}/api/products/${p._id}`, {
+                                  const res = await fetch(`${apiBase}/api/products/${p._id}`, {
                                     method: "DELETE",
                                     credentials: "include"
                                   });
@@ -1021,7 +1022,7 @@ function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCart
                                 message: `¿Estás seguro de que deseas eliminar la sede "${loc.name}"?`,
                                 onConfirm: async () => {
                                   setConfirmModal(prev => ({ ...prev, show: false }));
-                                  const res = await fetch(`${API_BASE}/api/locations/${loc._id}`, {
+                                  const res = await fetch(`${apiBase}/api/locations/${loc._id}`, {
                                     method: "DELETE",
                                     credentials: "include"
                                   });
@@ -1126,7 +1127,7 @@ function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCart
                                   message: `¿Estás seguro de que deseas eliminar a "${u.email}"? Esta acción no se puede deshacer.`,
                                   onConfirm: async () => {
                                     setConfirmModal(prev => ({ ...prev, show: false }));
-                                    const res = await fetch(`${API_BASE}/api/users/${u.id}`, {
+                                    const res = await fetch(`${apiBase}/api/users/${u.id}`, {
                                       method: "DELETE",
                                       credentials: "include"
                                     });
@@ -1212,7 +1213,7 @@ function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCart
                   return;
                 }
 
-                const res = await fetch(`${API_BASE}/api/products/${editProduct._id}`, {
+                const res = await fetch(`${apiBase}/api/products/${editProduct._id}`, {
                   method: "PATCH",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
