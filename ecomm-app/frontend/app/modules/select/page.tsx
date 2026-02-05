@@ -37,6 +37,8 @@ const AVAILABLE_MODULES = [
     }
 ];
 
+const API_BASE = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 function ModuleSelectContent() {
     const [selected, setSelected] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
@@ -63,7 +65,7 @@ function ModuleSelectContent() {
 
         setLoading(true);
         try {
-            const res = await fetch("/api/modules/activate", {
+            const res = await fetch(`${API_BASE}/api/modules/activate`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",

@@ -50,7 +50,7 @@ class Module(Document):
         name = "modules"
 class Category(Document):
     name: str
-    tenant_id: str
+    tenant: Link[Tenant]
     
     class Settings:
         name = "categories"
@@ -63,7 +63,7 @@ class Product(Document):
     category: Optional[str] = None
     images: List[str] = []
     is_featured: bool = False
-    tenant_id: str # We link by ID string for simplicity in queries, or could use Link[Tenant]
+    tenant: Link[Tenant] # Use Link[Tenant] for consistency with User model
 
     class Settings:
         name = "products"
@@ -80,7 +80,7 @@ class OrderItem(BaseModel):
     quantity: int
 
 class Order(Document):
-    tenant_id: str
+    tenant: Link[Tenant]
     items: List[OrderItem]
     total: float
     status: OrderStatus = OrderStatus.PENDING
@@ -92,7 +92,7 @@ class Order(Document):
         name = "orders"
 
 class MedicalRecord(Document):
-    tenant_id: str
+    tenant: Link[Tenant]
     patient_name: str
     owner_name: str
     species: str
@@ -104,7 +104,7 @@ class MedicalRecord(Document):
         name = "medical_records"
 
 class Appointment(Document):
-    tenant_id: str
+    tenant: Link[Tenant]
     customer_name: str
     pet_name: str
     date: datetime

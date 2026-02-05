@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Body
 from typing import List
 from pydantic import BaseModel
-from app.models import User, UserRole
+from app.models import User, UserRole, Tenant
+from app.dependencies import require_tenant
 from app.permissions import require_role
 from app.auth import get_password_hash
 
@@ -27,7 +28,7 @@ class UserResponse(BaseModel):
     class Config:
         orm_mode = True
 
-@router.get("/", response_model=List[UserResponse])
+@router.get("", response_model=List[UserResponse])
 async def list_users(
     user: User = Depends(require_role([UserRole.ADMIN, UserRole.OWNER]))
 ):
@@ -57,10 +58,11 @@ async def update_user_role(
     await target_user.save()
     return {"status": "success", "role": target_user.role}
 
-@router.post("/", response_model=UserResponse)
+@router.post("", response_model=UserResponse)
 async def create_user(
     new_user: UserCreate,
-    admin: User = Depends(require_role([UserRole.ADMIN, UserRole.OWNER]))
+    admin: User = Depends(require_role([UserRole.ADMIN, UserRole.OWNER])),
+    tenant = Depends(require_tenant)
 ):
     # Check if exists
     if await User.find_one(User.email == new_user.email):
@@ -71,7 +73,7 @@ async def create_user(
         email=new_user.email,
         hashed_password=get_password_hash(new_user.password),
         role=new_user.role,
-        tenant=admin.tenant  # Link the tenant object directly
+        tenant=tenant  # Use the fetched tenant document
     )
     await user.insert()
     

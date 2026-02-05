@@ -20,7 +20,7 @@ class CartItem(BaseModel):
     product_id: str
     quantity: int
 
-@router.post("/")
+@router.post("")
 async def add_to_cart(
     item: CartItem, 
     request: Request,
@@ -43,7 +43,7 @@ async def add_to_cart(
     
     return {"message": "Added to cart", "cart": await r.hgetall(key)}
 
-@router.get("/")
+@router.get("")
 async def get_cart(
     request: Request,
     tenant: Tenant = Depends(require_tenant)
@@ -56,7 +56,7 @@ async def get_cart(
     key = f"cart:{tenant.slug}:{session_id}"
     return await r.hgetall(key)
 
-@router.delete("/")
+@router.delete("")
 async def clear_cart(
     request: Request,
     tenant: Tenant = Depends(require_tenant)

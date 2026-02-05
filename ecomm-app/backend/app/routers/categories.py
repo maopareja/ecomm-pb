@@ -14,13 +14,13 @@ router = APIRouter(
 class CategoryCreate(BaseModel):
     name: str
 
-@router.get("/", response_model=List[Category])
+@router.get("", response_model=List[Category])
 async def list_categories(
     tenant = Depends(require_tenant)
 ):
-    return await Category.find(Category.tenant_id == str(tenant.id)).to_list()
+    return await Category.find(Category.tenant.id == tenant.id).to_list()
 
-@router.post("/", response_model=Category)
+@router.post("", response_model=Category)
 async def create_category(
     cat: CategoryCreate,
     user: User = Depends(require_role([UserRole.PRODUCT_MANAGER, UserRole.ADMIN, UserRole.OWNER])),
@@ -29,14 +29,14 @@ async def create_category(
     # Check if exists
     existing = await Category.find_one(
         Category.name == cat.name,
-        Category.tenant_id == str(tenant.id)
+        Category.tenant.id == tenant.id
     )
     if existing:
         raise HTTPException(status_code=400, detail="Category already exists")
         
     new_cat = Category(
         name=cat.name,
-        tenant_id=str(tenant.id)
+        tenant=tenant
     )
     await new_cat.insert()
     return new_cat
@@ -44,13 +44,9 @@ async def create_category(
 @router.delete("/{category_id}")
 async def delete_category(
     category_id: str,
-    user: User = Depends(require_role([UserRole.PRODUCT_MANAGER, UserRole.ADMIN, UserRole.OWNER])),
-    tenant = Depends(require_tenant)
+    user: User = Depends(require_role([UserRole.PRODUCT_MANAGER, UserRole.ADMIN, UserRole.OWNER]))
 ):
-    cat = await Category.find_one(
-        Category.id == category_id,
-        Category.tenant_id == str(tenant.id)
-    )
+    cat = await Category.get(category_id)
     if not cat:
         raise HTTPException(status_code=404, detail="Category not found")
         

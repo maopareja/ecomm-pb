@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+const API_BASE = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 export default function CheckoutPage() {
     const router = useRouter();
     const [cart, setCart] = useState<any>({});
@@ -36,8 +38,8 @@ export default function CheckoutPage() {
 
         try {
             const [cartRes, prodRes] = await Promise.all([
-                fetch("/api/cart/", { headers: { "x-session-id": sessionId }, credentials: "include" }),
-                fetch("/api/products/", { credentials: "include" })
+                fetch(`${API_BASE}/api/cart`, { headers: { "x-session-id": sessionId }, credentials: "include" }),
+                fetch(`${API_BASE}/api/products`, { credentials: "include" })
             ]);
 
             const cartData = cartRes.ok ? await cartRes.json() : {};
@@ -73,7 +75,7 @@ export default function CheckoutPage() {
 
 
         try {
-            const res = await fetch("/api/cart/", {
+            const res = await fetch(`${API_BASE}/api/cart`, {
                 method: "DELETE",
                 headers: { "x-session-id": sessionId }
             });
@@ -97,7 +99,7 @@ export default function CheckoutPage() {
         let sessionId = localStorage.getItem("session_id");
 
         try {
-            const res = await fetch("/api/checkout/", {
+            const res = await fetch(`${API_BASE}/api/checkout`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

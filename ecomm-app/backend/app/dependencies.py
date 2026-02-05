@@ -77,17 +77,10 @@ async def get_tenant_by_host(request: Request) -> Optional[Tenant]:
     tenant = await Tenant.find_one(Tenant.slug == default_slug)
     
     if tenant:
+        logger.warning(f"Tenant found: {tenant.slug} (ID: {tenant.id})")
         return tenant
-        
-    # If not found, CREATE it (Plan B for clean install / resilience)
-    # This logic implies we might need to import TenantCreate or similar, 
-    # but for dependencies, let's keep it simple: 
-    # If it doesn't exist, we might fail or try to bootstrap.
-    # Given the prompt, let's try to fetch, if None, we might return None which causes 404 in require_tenant.
-    # Ideally, we should ensure it exists.
     
-    # For now, let's just Log and return None if missing, but we assume it exists from previous setup.
-    # Or strict fallback:
+    logger.error(f"Tenant NOT FOUND: {default_slug}!")
     return None
 
 

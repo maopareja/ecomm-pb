@@ -22,7 +22,7 @@ class AppointmentCreate(BaseModel):
 
 @router.get("/records", response_model=List[MedicalRecord])
 async def list_records(tenant: Tenant = Depends(require_vet_module)):
-    return await MedicalRecord.find(MedicalRecord.tenant_id == str(tenant.id)).to_list()
+    return await MedicalRecord.find(MedicalRecord.tenant.id == tenant.id).to_list()
 
 @router.post("/records", response_model=MedicalRecord)
 async def create_record(
@@ -30,7 +30,7 @@ async def create_record(
     tenant: Tenant = Depends(require_vet_module)
 ):
     new_record = MedicalRecord(
-        tenant_id=str(tenant.id),
+        tenant=tenant,
         patient_name=record.patient_name,
         owner_name=record.owner_name,
         species=record.species,
@@ -42,7 +42,7 @@ async def create_record(
 
 @router.get("/appointments", response_model=List[Appointment])
 async def list_appointments(tenant: Tenant = Depends(require_vet_module)):
-    return await Appointment.find(Appointment.tenant_id == str(tenant.id)).to_list()
+    return await Appointment.find(Appointment.tenant.id == tenant.id).to_list()
 
 @router.post("/appointments", response_model=Appointment)
 async def create_appointment(
@@ -50,7 +50,7 @@ async def create_appointment(
     tenant: Tenant = Depends(require_vet_module)
 ):
     new_appt = Appointment(
-        tenant_id=str(tenant.id),
+        tenant=tenant,
         customer_name=appt.customer_name,
         pet_name=appt.pet_name,
         date=appt.date,

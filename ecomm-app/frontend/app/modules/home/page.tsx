@@ -6,6 +6,8 @@ import NewPatientModal from './components/patients/NewPatientModal';
 import NewClientModal from './components/clients/NewClientModal';
 import PatientHistoryModal from './components/patients/PatientHistoryModal';
 
+const API_BASE = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 export default function HomeModulePage() {
     const router = useRouter();
     const [isCheckingAuth, setIsCheckingAuth] = useState(true);
@@ -16,7 +18,7 @@ export default function HomeModulePage() {
     }, [router]);
 
     const fetchUser = () => {
-        fetch("/api/auth/me", { credentials: "include" })
+        fetch(`${API_BASE}/api/auth/me`, { credentials: "include" })
             .then(res => res.ok ? res.json() : null)
             .then(data => {
                 if (data) {
@@ -34,7 +36,7 @@ export default function HomeModulePage() {
     };
 
     const handleLogout = async () => {
-        await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+        await fetch(`${API_BASE}/api/auth/logout`, { method: "POST", credentials: "include" });
         // Redirect to tenant's public home page (root of current subdomain)
         window.location.href = "/";
     };

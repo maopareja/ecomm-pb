@@ -91,7 +91,7 @@ async def checkout(
 
     # 5. Create Order
     order = Order(
-        tenant_id=str(tenant.id),
+        tenant=tenant,
         items=items,
         total=total,
         status="PAID", # We assume immediate payment success for MVP

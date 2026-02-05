@@ -21,7 +21,7 @@ class ProductCreate(BaseModel):
     images: List[str] = []
     is_featured: bool = False
 
-@router.get("/", response_model=List[Product])
+@router.get("", response_model=List[Product])
 async def list_products(
     tenant: Tenant = Depends(require_tenant),
     q: Optional[str] = None,
@@ -29,7 +29,7 @@ async def list_products(
     location_id: Optional[str] = None
 ):
     # Base criteria
-    criteria = [Product.tenant_id == str(tenant.id)]
+    criteria = [Product.tenant.id == tenant.id]
     
     if category:
         criteria.append(Product.category == category)
@@ -58,7 +58,7 @@ async def list_products(
         
     return products
 
-@router.post("/")
+@router.post("", response_model=Product)
 async def create_product(
     prod: ProductCreate, 
     user: User = Depends(require_role([UserRole.PRODUCT_MANAGER, UserRole.ADMIN, UserRole.OWNER])),
@@ -78,7 +78,7 @@ async def create_product(
         category=prod.category,
         images=prod.images,
         is_featured=prod.is_featured,
-        tenant_id=str(tenant.id)
+        tenant=tenant
     )
     await product.insert()
     

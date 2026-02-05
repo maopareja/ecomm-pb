@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import ClientSelector from './ClientSelector';
 import { fetchWithAuth } from '../../utils/api';
 
+const API_BASE = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 interface NewPatientModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -110,7 +112,7 @@ export default function NewPatientModal({ isOpen, onClose, onPatientCreated, cli
                 // CORRECTION FOR FORMDATA: fetchWithAuth appends Content-Type json. 
                 // We need custom overwrite or handle it manually. 
                 // Re-implementing manual fetch for photo upload to avoid Content-Type conflict
-                const uploadResponse2 = await fetch(`/api/patients/${savedPatient.id}/photo`, {
+                const uploadResponse2 = await fetch(`${API_BASE}/api/patients/${savedPatient.id}/photo`, {
                     method: 'POST',
                     body: formData,
                     credentials: 'include'

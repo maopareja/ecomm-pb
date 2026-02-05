@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+const API_BASE = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 export default function PaymentPage() {
     const [loading, setLoading] = useState(false);
     const router = useRouter();
@@ -9,7 +11,7 @@ export default function PaymentPage() {
     const handleActivate = async () => {
         setLoading(true);
         try {
-            const res = await fetch("/api/modules/activate", {
+            const res = await fetch(`${API_BASE}/api/modules/activate`, {
                 method: "POST",
                 credentials: "include",
             });

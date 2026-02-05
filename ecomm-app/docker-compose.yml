@@ -5,8 +5,8 @@ services:
     ports:
       - "28018:27017"
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=example
+      - MONGO_INITDB_ROOT_USERNAME=pbmnguser
+      - MONGO_INITDB_ROOT_PASSWORD=P1n3c1092$
     volumes:
       - ./mongodb/data:/data/db
 
@@ -43,7 +43,7 @@ services:
     ports:
       - "8090:8000"
     environment:
-      - MONGO_URI=mongodb://root:example@mongo:27017
+      - MONGO_URI=mongodb://pbmnguser:P1n3c1092$@mongo:27017
       - REDIS_URL=redis://redis:6379/0
       - RABBITMQ_URL=amqp://mpbadmin:Elverde.1978%25@rabbitmq:5672//
       - DATABASE_NAME=ecomm
@@ -60,7 +60,6 @@ services:
     ports:
       - "9090:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=https://pinecrestbakery.com/prjzdev1092/api
       - NEXT_PUBLIC_BASE_PATH=/prjzdev1092
       - NODE_ENV=production
     volumes:
@@ -84,7 +83,7 @@ services:
     volumes:
       - ./backend:/app
     environment:
-      - MONGO_URI=mongodb://root:example@mongo:27017
+      - MONGO_URI=mongodb://pbmnguser:P1n3c1092$@mongo:27017
       - REDIS_URL=redis://redis:6379/0
       - RABBITMQ_URL=amqp://mpbadmin:Elverde.1978%25@rabbitmq:5672//
       - DATABASE_NAME=ecomm

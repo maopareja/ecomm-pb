@@ -7,7 +7,7 @@ async def bootstrap_system():
     await init_db()
     
     # 1. Promote Admin
-    email = "admin@ecommpb.local"
+    email = "adminpb@mail.com"
     user = await User.find_one(User.email == email)
     if user:
         print(f"Found user {user.email}. Current Role: {user.role}")

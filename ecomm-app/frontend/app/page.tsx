@@ -3,7 +3,23 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { InventoryManager } from './InventoryManager';
-import { CategoriesTab } from './CategoriesTab';
+
+const getApiBase = () => {
+  // 1. Try environment variable (injected during build)
+  const envBase = process.env.NEXT_PUBLIC_BASE_PATH || '';
+  if (envBase) return envBase;
+
+  // 2. Client-side fallback: Detect from current URL if we are in the known subpath
+  if (typeof window !== 'undefined') {
+    if (window.location.pathname.startsWith('/prjzdev1092')) {
+      return '/prjzdev1092';
+    }
+  }
+  return '';
+};
+
+const API_BASE = getApiBase();
+console.log('🚀 API_BASE initialized as:', API_BASE);
 
 // PB Pasteles Store
 export default function TenantStore() {
@@ -45,21 +61,23 @@ export default function TenantStore() {
   }, [searchQuery, categoryFilter]);
 
   const fetchUser = () => {
-    fetch("/api/auth/me", { credentials: "include" })
+    fetch(`${API_BASE}/api/auth/me`, { credentials: "include" })
       .then(res => res.ok ? res.json() : null)
       .then(setUser)
       .catch(() => setUser(null));
   };
 
   const fetchCategories = () => {
-    fetch("/api/categories/", { credentials: "include" })
+    console.log('📡 Fetching categories from:', `${API_BASE}/api/categories`);
+    fetch(`${API_BASE}/api/categories`, { credentials: "include" })
       .then(res => res.ok ? res.json() : [])
       .then(setCategories)
       .catch(console.error);
   };
 
   const fetchLocations = () => {
-    fetch("/api/locations/", { credentials: "include" })
+    console.log('📡 Fetching locations from:', `${API_BASE}/api/locations`);
+    fetch(`${API_BASE}/api/locations`, { credentials: "include" })
       .then(res => res.ok ? res.json() : [])
       .then(setLocations)
       .catch(console.error);
@@ -70,7 +88,7 @@ export default function TenantStore() {
   }, [searchQuery, categoryFilter, selectedLocation]); // Trigger on filter change
 
   const fetchProducts = () => {
-    let url = "/api/products/?";
+    let url = `${API_BASE}/api/products?`;
     if (searchQuery) url += `q=${searchQuery}&`;
     if (categoryFilter) url += `category=${categoryFilter}&`;
     if (selectedLocation) url += `location_id=${selectedLocation}&`;
@@ -87,7 +105,7 @@ export default function TenantStore() {
   const fetchCart = () => {
     let sessionId = localStorage.getItem("session_id");
     if (!sessionId) return;
-    fetch("/api/cart/", {
+    fetch(`${API_BASE}/api/cart`, {
       headers: { "x-session-id": sessionId },
       credentials: "include"
     })
@@ -109,7 +127,7 @@ export default function TenantStore() {
       localStorage.setItem("session_id", sessionId);
     }
 
-    const res = await fetch("/api/cart/", {
+    const res = await fetch(`${API_BASE}/api/cart`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -134,7 +152,7 @@ export default function TenantStore() {
   const handleAuth = async (e: React.FormEvent, type: 'login' | 'register') => {
     e.preventDefault();
     const isLogin = type === 'login';
-    const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
+    const endpoint = isLogin ? `${API_BASE}/api/auth/login` : `${API_BASE}/api/auth/register`;
 
     setAuthMsg("Procesando...");
     try {
@@ -156,7 +174,7 @@ export default function TenantStore() {
   };
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    await fetch(`${API_BASE}/api/auth/logout`, { method: "POST", credentials: "include" });
     window.location.reload();
   };
 
@@ -173,7 +191,7 @@ export default function TenantStore() {
           {/* Logo */}
           <div className="flex items-center gap-2 flex-shrink-0">
             <div className="w-10 h-10 bg-[var(--color-primary)] rounded-full flex items-center justify-center text-white text-xl font-bold">PB</div>
-            <h1 className="text-2xl font-bold tracking-tight text-[var(--color-chocolate)]">PB <span className="text-[var(--color-primary)]">Pasteles</span></h1>
+            <h1 className="text-2xl font-bold tracking-tight text-[var(--color-chocolate)]">PB <span className="text-[var(--color-primary)]">Pasteles</span> <span className="text-[8px] opacity-0">v2</span></h1>
           </div>
 
           {/* Search Bar */}
@@ -423,7 +441,7 @@ export default function TenantStore() {
         className="modal bg-transparent p-0 w-full h-full max-w-none max-h-none backdrop:bg-white/80 backdrop:backdrop-blur-sm z-50"
         onCancel={(e) => e.preventDefault()}
       >
-        <AdminDashboard currentUser={user} />
+        <AdminDashboard currentUser={user} setCartMsg={setCartMsg} />
       </dialog>
 
 
@@ -447,7 +465,7 @@ export default function TenantStore() {
   );
 }
 
-function AdminDashboard({ currentUser }: { currentUser: any }) {
+function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCartMsg: (msg: string) => void }) {
   const [activeTab, setActiveTab] = useState("products");
   const [locations, setLocations] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
@@ -480,7 +498,7 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
     formData.append("file", file);
 
     try {
-      const res = await fetch("/api/upload/", {
+      const res = await fetch(`${API_BASE}/api/upload`, {
         method: "POST",
         body: formData,
         credentials: "include"
@@ -498,28 +516,30 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
   };
 
   const fetchLocations = async () => {
-    const res = await fetch("/api/locations/", { credentials: "include" });
+    const res = await fetch(`${API_BASE}/api/locations`, { credentials: "include" });
     if (res.ok) setLocations(await res.json());
   };
 
   const fetchUsers = async () => {
-    const res = await fetch("/api/users/", { credentials: "include" });
+    const res = await fetch(`${API_BASE}/api/users`, { credentials: "include" });
     if (res.ok) setUsers(await res.json());
   };
 
   const fetchProducts = async () => {
-    const res = await fetch("/api/products/", { credentials: "include" });
+    const res = await fetch(`${API_BASE}/api/products`, { credentials: "include" });
     if (res.ok) setProducts(await res.json());
   };
 
   const fetchCategories = async () => {
-    const res = await fetch("/api/categories/", { credentials: "include" });
+    console.log('📡 AdminDashboard: Fetching categories from:', `${API_BASE}/api/categories`);
+    const res = await fetch(`${API_BASE}/api/categories`, { credentials: "include" });
     if (res.ok) setCategories(await res.json());
   };
 
   useEffect(() => {
     if (activeTab === "locations") fetchLocations();
     if (activeTab === "users") fetchUsers();
+    if (activeTab === "categories") fetchCategories();
     if (activeTab === "products") {
       fetchProducts();
       fetchLocations(); // Needed for initial inventory in create form
@@ -533,7 +553,7 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
     const address = e.target.locAddress.value;
     const phone = e.target.locPhone?.value || "";
 
-    const res = await fetch("/api/locations/", {
+    const res = await fetch(`${API_BASE}/api/locations`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, address, phone }),
@@ -550,7 +570,7 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
   };
 
   const handleRoleUpdate = async (userId: string, newRole: string) => {
-    const res = await fetch(`/api/users/${userId}/role`, {
+    const res = await fetch(`${API_BASE}/api/users/${userId}/role`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ role: newRole }),
@@ -566,7 +586,7 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
     const password = e.target.uPass.value;
     const role = e.target.uRole.value;
 
-    const res = await fetch("/api/users/", {
+    const res = await fetch(`${API_BASE}/api/users`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password, role }),
@@ -603,7 +623,106 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
         <div className="flex-grow overflow-y-auto bg-white p-10">
 
           {/* CATEGORIES TAB */}
-          {activeTab === "categories" && <CategoriesTab />}
+          {activeTab === "categories" && (
+            <div className="max-w-4xl mx-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-bold text-[var(--color-chocolate)]">Gestión de Categorías</h3>
+              </div>
+
+              {/* Categories Layout: Form Top, List Bottom */}
+              <div className="max-w-4xl mx-auto space-y-8">
+                {/* Create Form - Top */}
+                <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 shadow-sm">
+                  <h4 className="font-bold text-[var(--color-chocolate)] mb-4">Nueva Categoría</h4>
+                  <form onSubmit={async (e: React.FormEvent) => {
+                    e.preventDefault();
+                    const form = e.target as HTMLFormElement;
+                    const name = (form.elements.namedItem('catName') as HTMLInputElement).value;
+                    if (!name.trim()) return;
+
+                    const res = await fetch(`${API_BASE}/api/categories`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ name }),
+                      credentials: "include"
+                    });
+
+                    if (res.ok) {
+                      form.reset();
+                      fetchCategories();
+                      setCartMsg("✅ Categoría creada");
+                      setTimeout(() => setCartMsg(""), 3000);
+                    } else {
+                      const d = await res.json();
+                      setCartMsg("❌ Error: " + (d.detail || "Error al crear categoría"));
+                      setTimeout(() => setCartMsg(""), 3000);
+                    }
+                  }} className="flex flex-col md:flex-row gap-4">
+                    <input
+                      type="text"
+                      name="catName"
+                      placeholder="Nombre (ej. Panadería)"
+                      className="flex-1 p-3 border rounded-xl"
+                      required
+                    />
+                    <button className="bg-[var(--color-primary)] text-white font-bold px-8 py-3 rounded-xl hover:opacity-90 whitespace-nowrap">
+                      Crear Categoría
+                    </button>
+                  </form>
+                </div>
+
+                {/* List - Bottom */}
+                <div className="bg-white rounded-xl border overflow-hidden shadow-sm">
+                  <table className="w-full text-left">
+                    <thead className="bg-gray-50 border-b">
+                      <tr className="text-xs font-bold uppercase text-gray-400">
+                        <th className="py-3 px-6">Nombre de la Categoría</th>
+                        <th className="py-3 px-6 text-right">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {categories.length === 0 ? (
+                        <tr><td colSpan={2} className="py-12 text-center text-gray-400">No hay categorías registradas.</td></tr>
+                      ) : categories.map(cat => (
+                        <tr key={cat._id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors">
+                          <td className="py-4 px-6 font-bold text-gray-700">{cat.name}</td>
+                          <td className="py-4 px-6 text-right">
+                            <button
+                              onClick={() => {
+                                setConfirmModal({
+                                  show: true,
+                                  title: 'Eliminar Categoría',
+                                  message: `¿Estás seguro de que deseas eliminar la categoría "${cat.name}"?`,
+                                  onConfirm: async () => {
+                                    setConfirmModal(prev => ({ ...prev, show: false }));
+                                    const res = await fetch(`${API_BASE}/api/categories/${cat._id}`, {
+                                      method: "DELETE",
+                                      credentials: "include"
+                                    });
+                                    if (res.ok) {
+                                      fetchCategories();
+                                      setCartMsg("✅ Categoría eliminada");
+                                      setTimeout(() => setCartMsg(""), 3000);
+                                    } else {
+                                      setCartMsg("❌ Error al eliminar categoría");
+                                      setTimeout(() => setCartMsg(""), 3000);
+                                    }
+                                  }
+                                });
+                              }}
+                              className="text-red-500 hover:text-red-700 font-bold text-sm bg-red-50 px-3 py-1 rounded-lg hover:bg-red-100 transition-colors"
+                            >
+                              Eliminar
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* PRODUCTS TAB */}
           {activeTab === "products" && (
@@ -643,9 +762,13 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
                       })
                       .filter(item => item.quantity > 0);
 
-                    if (isNaN(price)) return alert("Invalid price");
+                    if (isNaN(price)) {
+                      setCartMsg("❌ Precio inválido");
+                      setTimeout(() => setCartMsg(""), 3000);
+                      return;
+                    }
 
-                    const res = await fetch("/api/products/", {
+                    const res = await fetch(`${API_BASE}/api/products`, {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({
@@ -662,11 +785,15 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
                       e.target.reset();
                       setPriceRaw("");
                       setNewProductImage(""); // Reset image
-                      // reset inputs dynamically if needed, but form reset handles it
                       setShowProductForm(false);
                       fetchProducts(); // Refresh product list
+                      setCartMsg("✅ Producto guardado");
+                      setTimeout(() => setCartMsg(""), 3000);
                     }
-                    else alert("Error saving product");
+                    else {
+                      setCartMsg("❌ Error al guardar producto");
+                      setTimeout(() => setCartMsg(""), 3000);
+                    }
                   }} className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div><label className="block text-xs font-bold uppercase text-gray-500 mb-2">Nombre</label><input name="pname" className="w-full border p-3 rounded-xl" required /></div>
@@ -783,17 +910,19 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
                                 title: '¿Eliminar producto?',
                                 message: `Confirma que deseas eliminar "${p.name}". Esta acción no se puede deshacer.`,
                                 onConfirm: async () => {
-                                  const res = await fetch(`/api/products/${p._id}`, {
+                                  setConfirmModal(prev => ({ ...prev, show: false }));
+                                  const res = await fetch(`${API_BASE}/api/products/${p._id}`, {
                                     method: "DELETE",
                                     credentials: "include"
                                   });
                                   if (res.ok) {
                                     fetchProducts();
-                                    setConfirmModal({ show: false, title: '', message: '', onConfirm: () => { } });
+                                    setCartMsg("✅ Producto eliminado");
+                                    setTimeout(() => setCartMsg(""), 3000);
                                   } else {
                                     const d = await res.json();
-                                    alert(`Error: ${d.detail}`);
-                                    setConfirmModal({ show: false, title: '', message: '', onConfirm: () => { } });
+                                    setCartMsg(`❌ Error: ${d.detail || "Error al eliminar"}`);
+                                    setTimeout(() => setCartMsg(""), 3000);
                                   }
                                 }
                               });
@@ -881,19 +1010,29 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
                         <td className="py-3 px-4">
                           <button className="text-blue-600 hover:text-blue-800 text-sm font-bold mr-3">✏️ Editar</button>
                           <button
-                            onClick={async () => {
-                              if (!confirm(`¿Eliminar sede "${loc.name}"?`)) return;
-                              const res = await fetch(`/api/locations/${loc._id}`, {
-                                method: "DELETE",
-                                credentials: "include"
+                            onClick={() => {
+                              console.log('🗑️ Intentando eliminar sede:', loc.name, loc._id);
+                              setConfirmModal({
+                                show: true,
+                                title: 'Eliminar Sede',
+                                message: `¿Estás seguro de que deseas eliminar la sede "${loc.name}"?`,
+                                onConfirm: async () => {
+                                  setConfirmModal(prev => ({ ...prev, show: false }));
+                                  const res = await fetch(`${API_BASE}/api/locations/${loc._id}`, {
+                                    method: "DELETE",
+                                    credentials: "include"
+                                  });
+                                  if (res.ok) {
+                                    fetchLocations();
+                                    setCartMsg("✅ Sede eliminada");
+                                    setTimeout(() => setCartMsg(""), 3000);
+                                  } else {
+                                    const d = await res.json();
+                                    setCartMsg(`❌ Error: ${d.detail || "Error al eliminar"}`);
+                                    setTimeout(() => setCartMsg(""), 3000);
+                                  }
+                                }
                               });
-                              if (res.ok) {
-                                fetchLocations();
-                                alert("Sede eliminada");
-                              } else {
-                                const d = await res.json();
-                                alert(`Error: ${d.detail}`);
-                              }
                             }}
                             className="text-red-600 hover:text-red-800 text-sm font-bold"
                           >
@@ -975,29 +1114,27 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
         </div>
       </div>
 
-      {/* ELEGANT CONFIRMATION MODAL */}
+      {/* PREMIUM CONFIRMATION MODAL */}
       {confirmModal.show && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl animate-in zoom-in duration-200">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-3xl">⚠️</span>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">{confirmModal.title}</h3>
-              <p className="text-gray-600">{confirmModal.message}</p>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-gray-100 animate-in zoom-in duration-200 text-center">
+            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-red-100">
+              <span className="text-4xl">⚠️</span>
             </div>
-            <div className="flex gap-3">
+            <h3 className="text-2xl font-black text-gray-900 mb-3">{confirmModal.title}</h3>
+            <p className="text-gray-500 mb-8 leading-relaxed font-medium">{confirmModal.message}</p>
+            <div className="flex gap-4">
               <button
                 onClick={() => setConfirmModal({ show: false, title: '', message: '', onConfirm: () => { } })}
-                className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-colors"
+                className="flex-1 px-6 py-4 bg-gray-50 text-gray-600 rounded-2xl font-black hover:bg-gray-100 transition-all border border-gray-200 active:scale-95"
               >
                 Cancelar
               </button>
               <button
                 onClick={confirmModal.onConfirm}
-                className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-colors"
+                className="flex-1 px-6 py-4 bg-red-600 text-white rounded-2xl font-black hover:bg-red-700 shadow-lg shadow-red-200 transition-all active:scale-95"
               >
-                Confirmar
+                Eliminar
               </button>
             </div>
           </div>
@@ -1005,100 +1142,109 @@ function AdminDashboard({ currentUser }: { currentUser: any }) {
       )}
 
       {/* EDIT PRODUCT MODAL */}
-      {editProduct && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200 p-4">
-          <div className="bg-white rounded-2xl p-8 max-w-2xl w-full shadow-2xl animate-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-bold text-[var(--color-chocolate)]">Editar Producto</h3>
-              <button onClick={() => setEditProduct(null)} className="text-gray-400 hover:text-gray-600 text-2xl">✕</button>
+      {
+        editProduct && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200 p-4">
+            <div className="bg-white rounded-2xl p-8 max-w-2xl w-full shadow-2xl animate-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-bold text-[var(--color-chocolate)]">Editar Producto</h3>
+                <button onClick={() => setEditProduct(null)} className="text-gray-400 hover:text-gray-600 text-2xl">✕</button>
+              </div>
+              <form onSubmit={async (e: any) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const name = formData.get("pname");
+                const desc = formData.get("pdesc");
+                const cat = formData.get("pcat");
+                const price = parseFloat(priceRaw.replace(/,/g, ""));
+                // Stock is managed via Inventory Manager, not here
+
+                if (isNaN(price)) {
+                  setCartMsg("❌ Precio inválido");
+                  setTimeout(() => setCartMsg(""), 3000);
+                  return;
+                }
+
+                const res = await fetch(`${API_BASE}/api/products/${editProduct._id}`, {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    name,
+                    description: desc,
+                    price,
+                    // stock: stock, // Removed
+                    category: cat,
+                    images: editProduct.images || [],
+                    is_featured: editProduct.is_featured || false
+                  }),
+                  credentials: "include"
+                });
+                if (res.ok) {
+                  setEditProduct(null);
+                  fetchProducts();
+                  setCartMsg("✅ Producto actualizado");
+                  setTimeout(() => setCartMsg(""), 3000);
+                } else {
+                  const d = await res.json();
+                  setCartMsg("❌ Error: " + (d.detail || "Error desconocido"));
+                  setTimeout(() => setCartMsg(""), 3000);
+                }
+              }} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Nombre</label>
+                    <input name="pname" defaultValue={editProduct.name} className="w-full border p-3 rounded-xl" required />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Categoría</label>
+                    <select name="pcat" defaultValue={editProduct.category} className="w-full border p-3 rounded-xl bg-white" required>
+                      <option value="">Seleccionar...</option>
+                      {categories.map((c: any) => (
+                        <option key={c._id} value={c.name}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Descripción</label>
+                  <textarea name="pdesc" rows={2} defaultValue={editProduct.description} className="w-full border p-3 rounded-xl" required></textarea>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Precio ($)</label>
+                    <input type="text" value={priceRaw} onChange={(e) => setPriceRaw(e.target.value.replace(/[^0-9.]/g, ''))} className="w-full border p-3 rounded-xl font-bold" required />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Stock Total (Sedes)</label>
+                    <input type="number" value={editProduct.stock} disabled className="w-full border p-3 rounded-xl font-bold bg-gray-100 text-gray-500 cursor-not-allowed" />
+                    <p className="text-[10px] text-blue-500 mt-1 font-bold">Gestionar en "📦 Inventario"</p>
+                  </div>
+                </div>
+
+                {/* Image Upload for Edit */}
+                <div>
+                  <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Imagen del Producto</label>
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileUpload(e, (url) => setEditProduct({ ...editProduct, images: [url] }))}
+                      className="w-full border p-3 rounded-xl bg-white"
+                    />
+                    {editProduct.images && editProduct.images.length > 0 && (
+                      <img src={editProduct.images[0]} alt="Preview" className="w-16 h-16 object-cover rounded-lg border shadow-sm" />
+                    )}
+                  </div>
+                </div>
+                <div className="flex gap-3 pt-4">
+                  <button type="button" onClick={() => setEditProduct(null)} className="flex-1 bg-gray-100 text-gray-700 p-3 rounded-xl font-bold hover:bg-gray-200">Cancelar</button>
+                  <button type="submit" className="flex-1 bg-[var(--color-chocolate)] text-white p-3 rounded-xl font-bold hover:opacity-90">Guardar Cambios</button>
+                </div>
+              </form>
             </div>
-            <form onSubmit={async (e: any) => {
-              e.preventDefault();
-              const formData = new FormData(e.target);
-              const name = formData.get("pname");
-              const desc = formData.get("pdesc");
-              const cat = formData.get("pcat");
-              const price = parseFloat(priceRaw.replace(/,/g, ""));
-              // Stock is managed via Inventory Manager, not here
-
-              if (isNaN(price)) return alert("Invalid price");
-
-              const res = await fetch(`/api/products/${editProduct._id}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  name,
-                  description: desc,
-                  price,
-                  // stock: stock, // Removed
-                  category: cat,
-                  images: editProduct.images || [],
-                  is_featured: editProduct.is_featured || false
-                }),
-                credentials: "include"
-              });
-              if (res.ok) {
-                setEditProduct(null);
-                fetchProducts();
-              } else {
-                const d = await res.json();
-                alert("Error: " + d.detail);
-              }
-            }} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Nombre</label>
-                  <input name="pname" defaultValue={editProduct.name} className="w-full border p-3 rounded-xl" required />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Categoría</label>
-                  <select name="pcat" defaultValue={editProduct.category} className="w-full border p-3 rounded-xl bg-white" required>
-                    <option value="">Seleccionar...</option>
-                    {categories.map((c: any) => (
-                      <option key={c._id} value={c.name}>{c.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Descripción</label>
-                <textarea name="pdesc" rows={2} defaultValue={editProduct.description} className="w-full border p-3 rounded-xl" required></textarea>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Precio ($)</label>
-                  <input type="text" value={priceRaw} onChange={(e) => setPriceRaw(e.target.value.replace(/[^0-9.]/g, ''))} className="w-full border p-3 rounded-xl font-bold" required />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Stock Total (Sedes)</label>
-                  <input type="number" value={editProduct.stock} disabled className="w-full border p-3 rounded-xl font-bold bg-gray-100 text-gray-500 cursor-not-allowed" />
-                  <p className="text-[10px] text-blue-500 mt-1 font-bold">Gestionar en "📦 Inventario"</p>
-                </div>
-              </div>
-
-              {/* Image Upload for Edit */}
-              <div>
-                <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Imagen del Producto</label>
-                <div className="flex items-center gap-4">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleFileUpload(e, (url) => setEditProduct({ ...editProduct, images: [url] }))}
-                    className="w-full border p-3 rounded-xl bg-white"
-                  />
-                  {editProduct.images && editProduct.images.length > 0 && (
-                    <img src={editProduct.images[0]} alt="Preview" className="w-16 h-16 object-cover rounded-lg border shadow-sm" />
-                  )}
-                </div>
-              </div>
-              <div className="flex gap-3 pt-4">
-                <button type="button" onClick={() => setEditProduct(null)} className="flex-1 bg-gray-100 text-gray-700 p-3 rounded-xl font-bold hover:bg-gray-200">Cancelar</button>
-                <button type="submit" className="flex-1 bg-[var(--color-chocolate)] text-white p-3 rounded-xl font-bold hover:opacity-90">Guardar Cambios</button>
-              </div>
-            </form>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 }

@@ -21,37 +21,26 @@ class InventoryUpdate(BaseModel):
     product_id: str
     quantity: int
 
-@router.post("/", response_model=Location)
+@router.post("", response_model=Location)
 async def create_location(
     loc: LocationCreate, 
-    user: User = Depends(require_role([UserRole.ADMIN, UserRole.OWNER]))
+    user: User = Depends(require_role([UserRole.ADMIN, UserRole.OWNER])),
+    tenant = Depends(require_tenant)
 ):
-    # Determine tenant from user
-    from app.models import Tenant
-    
-    if user.tenant:
-        tenant_id = str(user.tenant.id)
-    else:
-        # Fallback to default tenant for single-tenant mode
-        default_tenant = await Tenant.find_one(Tenant.slug == "ecomm-pb")
-        if not default_tenant:
-            raise HTTPException(status_code=500, detail="Default tenant not configured")
-        tenant_id = str(default_tenant.id)
-    
     new_loc = Location(
         name=loc.name,
         address=loc.address,
         phone=loc.phone,
-        tenant_id=tenant_id
+        tenant=tenant
     )
     await new_loc.insert()
     return new_loc
 
-@router.get("/", response_model=List[Location])
+@router.get("", response_model=List[Location])
 async def list_locations(
     tenant: Tenant = Depends(require_tenant)
 ):
-    return await Location.find(Location.tenant_id == str(tenant.id)).to_list()
+    return await Location.find(Location.tenant.id == tenant.id).to_list()
 
 @router.delete("/{location_id}")
 async def delete_location(

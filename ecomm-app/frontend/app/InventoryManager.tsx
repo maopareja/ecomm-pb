@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 
+const API_BASE = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 export function InventoryManager({ product, onUpdate }: { product: any, onUpdate: () => void }) {
     const [showModal, setShowModal] = useState(false);
     const [inventory, setInventory] = useState<any[]>([]);
@@ -15,7 +17,7 @@ export function InventoryManager({ product, onUpdate }: { product: any, onUpdate
     const loadInventory = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`/api/products/${product._id}/inventory`, { credentials: "include" });
+            const res = await fetch(`${API_BASE}/api/products/${product._id}/inventory`, { credentials: "include" });
             if (res.ok) {
                 setInventory(await res.json());
             }
@@ -27,7 +29,7 @@ export function InventoryManager({ product, onUpdate }: { product: any, onUpdate
 
     const handleUpdate = async (locationId: string, newQty: number) => {
         try {
-            const res = await fetch(`/api/locations/${locationId}/inventory`, {
+            const res = await fetch(`${API_BASE}/api/locations/${locationId}/inventory`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ product_id: product._id, quantity: newQty }),

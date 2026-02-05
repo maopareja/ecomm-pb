@@ -1,3 +1,5 @@
+const API_BASE = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
     // Attempt to extract tenant from URL if on a tenant page
     let tenantSlug = "";
@@ -20,7 +22,11 @@ export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
         ...(tenantSlug ? { 'X-Tenant-Slug': tenantSlug } : {})
     };
 
-    const response = await fetch(url, {
+    // Remove trailing slash and prepend API_BASE
+    const sanitizedUrl = url.endsWith('/') ? url.slice(0, -1) : url;
+    const finalUrl = `${API_BASE}${sanitizedUrl}`;
+
+    const response = await fetch(finalUrl, {
         ...options,
         headers,
         credentials: 'include'

@@ -2,14 +2,14 @@ from typing import Optional
 from beanie import Document, Link
 from pydantic import BaseModel, Field
 from datetime import datetime
-from .models import Product
+from .models import Product, Tenant
 
 class Location(Document):
     name: str
     address: Optional[str] = None
     phone: Optional[str] = None
     is_active: bool = True
-    tenant_id: str
+    tenant: Link[Tenant]
 
     class Settings:
         name = "locations"

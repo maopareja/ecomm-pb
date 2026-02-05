@@ -58,16 +58,15 @@ async def seed_default_tenant():
         print(f"Seeding default tenant: {slug}")
         
         # Ensure Owner exists
-        admin_email = "admin@ecommpb.local"
+        admin_email = "adminpb@mail.com"
         admin = await User.find_one(User.email == admin_email)
         
         if not admin:
             print(f"Seeding default admin: {admin_email}")
             admin = User(
                 email=admin_email,
-                hashed_password=pwd_context.hash("admin123"), # Default password
-                is_owner=True,
-                full_name="Admin"
+                hashed_password=pwd_context.hash("adminpb123"), # Default password
+                is_owner=True
             )
             await admin.insert()
             
