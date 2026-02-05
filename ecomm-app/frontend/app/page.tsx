@@ -166,10 +166,12 @@ export default function TenantStore() {
       if (res.ok) {
         window.location.reload();
       } else {
-        setAuthMsg("Error: " + data.detail);
+        setAuthMsg(`Error ${res.status}: ${data.detail || JSON.stringify(data)}`);
       }
-    } catch (err) {
-      setAuthMsg("Error de conexión");
+    } catch (err: any) {
+      console.error("Login Error:", err);
+      // Attempt to read text if JSON failed
+      setAuthMsg(`Error: ${err.message || "Fallo de conexión"}`);
     }
   };
 
