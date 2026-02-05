@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    // TEMPORAL: Hardcodeado para diagnóstico
-    basePath: '/prjzdev1092',
-    assetPrefix: '/prjzdev1092',
+    // basePath dinámico para despliegue en subpath (necesario para assets/estilos)
+    basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
+    assetPrefix: process.env.NEXT_PUBLIC_BASE_PATH || '',
 
     async rewrites() {
         return [
@@ -13,5 +13,7 @@ const nextConfig = {
         ]
     },
 }
+
+module.exports = nextConfig
 
 module.exports = nextConfig
