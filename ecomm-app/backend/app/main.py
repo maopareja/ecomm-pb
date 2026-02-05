@@ -12,7 +12,7 @@ app = FastAPI()
 # CORS for Frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"^https?://(localhost|ecommpb\.local|vetnexus\.local)(:\d+)?$",
+    allow_origin_regex=r"^https?://(localhost|ecommpb\.local|pinecrestbakery\.com|www\.pinecrestbakery\.com|pbuniversity\.org|www\.pbuniversity\.org)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
