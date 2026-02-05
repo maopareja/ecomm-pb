@@ -67,7 +67,6 @@ export default function TenantStore() {
   };
 
   const fetchCategories = () => {
-    console.log('📡 Fetching categories from:', `${API_BASE}/api/categories`);
     fetch(`${API_BASE}/api/categories`, { credentials: "include" })
       .then(res => res.ok ? res.json() : [])
       .then(setCategories)
@@ -75,7 +74,6 @@ export default function TenantStore() {
   };
 
   const fetchLocations = () => {
-    console.log('📡 Fetching locations from:', `${API_BASE}/api/locations`);
     fetch(`${API_BASE}/api/locations`, { credentials: "include" })
       .then(res => res.ok ? res.json() : [])
       .then(setLocations)
@@ -422,11 +420,7 @@ export default function TenantStore() {
         </div>
       )}
 
-      {user?.is_owner && (
-        <Link href="/admin" className="fixed bottom-8 right-8 z-40 bg-[var(--color-primary)] w-14 h-14 rounded-full flex items-center justify-center shadow-2xl text-white text-2xl hover:scale-110 transition-transform">
-          🛠️
-        </Link>
-      )}
+
 
       {/* Admin Panel (Simplified Overlay or Redirect?) 
           Actually, let's keep the dashboard inside the page for Owner MVP or separate route.
@@ -447,22 +441,14 @@ export default function TenantStore() {
 
 
       {/* Admin panel access for users with management roles */}
-      {
-        (() => {
-          console.log('🔍 DEBUG User object:', user);
-          console.log('🔍 user.role:', user?.role);
-          console.log('🔍 user.is_owner:', user?.is_owner);
-          const hasAccess = user && (user.is_owner || ['OWNER', 'ADMIN', 'PRODUCT_MANAGER', 'INVENTORY_MANAGER'].includes(user.role));
-          console.log('🔍 hasAccess:', hasAccess);
-          return hasAccess;
-        })() && (
-          <button
-            onClick={() => (document.getElementById('owner_modal') as HTMLDialogElement)?.showModal()}
-            className="fixed bottom-8 right-8 z-40 bg-[var(--color-chocolate)] w-14 h-14 rounded-full flex items-center justify-center shadow-2xl text-white text-2xl hover:scale-110 transition-transform border-4 border-white"
-          >
-            🛠️
-          </button>
-        )
+      {user && (user.is_owner || ['OWNER', 'ADMIN', 'PRODUCT_MANAGER', 'INVENTORY_MANAGER'].includes(user.role)) && (
+        <button
+          onClick={() => (document.getElementById('owner_modal') as HTMLDialogElement)?.showModal()}
+          className="fixed bottom-8 right-8 z-40 bg-[var(--color-chocolate)] w-14 h-14 rounded-full flex items-center justify-center shadow-2xl text-white text-2xl hover:scale-110 transition-transform border-4 border-white"
+        >
+          🛠️
+        </button>
+      )
       }
     </div >
   );

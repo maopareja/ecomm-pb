@@ -8,6 +8,10 @@ class RoleChecker:
         self.allowed_roles = allowed_roles
 
     def __call__(self, user: User = Depends(get_current_user)):
+        # Allow if user is explicitly an owner via flag, OR if their role is in allowed list
+        if user.is_owner:
+            return user
+            
         if user.role not in self.allowed_roles and user.role != UserRole.OWNER:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN, 
