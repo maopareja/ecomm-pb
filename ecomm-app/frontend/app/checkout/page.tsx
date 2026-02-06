@@ -2,8 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { API_BASE } from '../utils/basePath';
 
-const API_BASE = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
 export default function CheckoutPage() {
     const router = useRouter();

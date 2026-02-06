@@ -3,24 +3,11 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { InventoryManager } from './InventoryManager';
+import { API_BASE } from './utils/basePath';
 
 // PB Pasteles Store
 export default function TenantStore() {
-  const [apiBase, setApiBase] = useState("");
-
-  useEffect(() => {
-    // Determine API_BASE on client side mount
-    const envBase = process.env.NEXT_PUBLIC_BASE_PATH || '';
-    if (envBase) {
-      setApiBase(envBase);
-    } else if (typeof window !== 'undefined' && window.location.pathname.startsWith('/prjzdev1092')) {
-      setApiBase('/prjzdev1092');
-    } else {
-      setApiBase('');
-    }
-  }, []);
-
-  const API_BASE = apiBase; // Alias for compatibility with existing code
+  // API_BASE is now imported from utils/basePath - no state needed
 
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

@@ -1,8 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    // basePath dinámico para despliegue en subpath (necesario para assets/estilos)
-    basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
-    assetPrefix: process.env.NEXT_PUBLIC_BASE_PATH || '',
+    // Base path detection is now dynamic (see app/utils/basePath.ts)
+    // No hardcoded basePath or assetPrefix needed
 
     async rewrites() {
         return [
@@ -13,7 +12,5 @@ const nextConfig = {
         ]
     },
 }
-
-module.exports = nextConfig
 
 module.exports = nextConfig
