@@ -1,10 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import ClinicalRecordsTable from './components/clinical_records/ClinicalRecordsTable';
-import NewPatientModal from './components/patients/NewPatientModal';
-import NewClientModal from './components/clients/NewClientModal';
-import PatientHistoryModal from './components/patients/PatientHistoryModal';
 
 const API_BASE = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
@@ -37,59 +33,7 @@ export default function HomeModulePage() {
 
     const handleLogout = async () => {
         await fetch(`${API_BASE}/api/auth/logout`, { method: "POST", credentials: "include" });
-        // Redirect to tenant's public home page (root of current subdomain)
         window.location.href = "/";
-    };
-
-    const [isPatientModalOpen, setIsPatientModalOpen] = useState(false);
-    const [isClientModalOpen, setIsClientModalOpen] = useState(false);
-    const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
-    const [selectedPatient, setSelectedPatient] = useState<any>(null);
-    const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
-    const [refreshKey, setRefreshKey] = useState(0);
-
-    const handleAddPet = (clientId: string) => {
-        setSelectedPatient(null);
-        setSelectedClientId(clientId);
-        setIsPatientModalOpen(true);
-    };
-
-    const handleEditPatient = (patient: any) => {
-        setSelectedPatient(patient);
-        setSelectedClientId(null);
-        setIsPatientModalOpen(true);
-    };
-
-    const handlePatientModalClose = () => {
-        setIsPatientModalOpen(false);
-        setSelectedPatient(null);
-        setSelectedClientId(null);
-    };
-
-    const handlePatientCreated = () => {
-        setRefreshKey(prev => prev + 1);
-    };
-
-    const handleAddClient = () => {
-        setIsClientModalOpen(true);
-    };
-
-    const handleClientModalClose = () => {
-        setIsClientModalOpen(false);
-    };
-
-    const handleViewHistory = (patient: any) => {
-        setSelectedPatient(patient);
-        setIsHistoryModalOpen(true);
-    };
-
-    const handleHistoryModalClose = () => {
-        setIsHistoryModalOpen(false);
-        setSelectedPatient(null);
-    };
-
-    const handleClientCreated = () => {
-        setRefreshKey(prev => prev + 1);
     };
 
     if (isCheckingAuth) {
@@ -98,7 +42,6 @@ export default function HomeModulePage() {
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
-            {/* Header / Navbar */}
             <header className="bg-white border-b border-gray-200 py-4 px-6 shadow-sm sticky top-0 z-10">
                 <div className="max-w-7xl mx-auto flex justify-between items-center">
                     <div className="flex items-center gap-4">
@@ -109,7 +52,7 @@ export default function HomeModulePage() {
                         >
                             ←
                         </button>
-                        <h1 className="text-xl font-bold text-gray-900">Historia Clínica</h1>
+                        <h1 className="text-xl font-bold text-gray-900">Módulo Home</h1>
                     </div>
 
                     <div className="flex items-center gap-6">
@@ -131,36 +74,13 @@ export default function HomeModulePage() {
 
             <main className="flex-grow py-8 px-4">
                 <div className="max-w-7xl mx-auto">
-
-                    <ClinicalRecordsTable
-                        key={refreshKey}
-                        onAddPet={handleAddPet}
-                        onEditPatient={handleEditPatient}
-                        onAddClient={handleAddClient}
-                        onViewHistory={handleViewHistory}
-                    />
-
-                    <NewPatientModal
-                        isOpen={isPatientModalOpen}
-                        onClose={handlePatientModalClose}
-                        onPatientCreated={handlePatientCreated}
-                        clientId={selectedClientId}
-                        patient={selectedPatient}
-                    />
-
-                    <NewClientModal
-                        isOpen={isClientModalOpen}
-                        onClose={handleClientModalClose}
-                        onClientCreated={handleClientCreated}
-                    />
-
-                    <PatientHistoryModal
-                        isOpen={isHistoryModalOpen}
-                        onClose={handleHistoryModalClose}
-                        patient={selectedPatient}
-                    />
+                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center">
+                        <h2 className="text-2xl font-bold text-gray-800 mb-4">Módulo en Desarrollo</h2>
+                        <p className="text-gray-500">Este módulo se encuentra actualmente en migración o desarrollo.</p>
+                    </div>
                 </div>
             </main>
         </div>
     );
 }
+
