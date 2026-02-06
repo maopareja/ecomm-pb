@@ -10,25 +10,25 @@ services:
     volumes:
       - ./mongodb/data:/data/db
 
-  redis:
-    image: redis:7
-    container_name: ecomm_redis
-    profiles: [ "local" ]
-    ports:
-      - "6480:6379"
+  #   redis:
+  #     image: redis:7
+  #     container_name: ecomm_redis
+  #     profiles: [ "local" ]
+  #     ports:
+  #       - "6480:6379"
 
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: ecomm_rabbit
-    profiles: [ "local" ]
-    ports:
-      - "5773:5672"
-      - "16673:15672"
-    environment:
-      - RABBITMQ_DEFAULT_USER=mpbadmin
-      - RABBITMQ_DEFAULT_PASS=Elverde.1978%
-    volumes:
-      - ./rabbitmq/data:/var/lib/rabbitmq
+  #   rabbitmq:
+  #     image: rabbitmq:3-management
+  #     container_name: ecomm_rabbit
+  #     profiles: [ "local" ]
+  #     ports:
+  #       - "5773:5672"
+  #       - "16673:15672"
+  #     environment:
+  #       - RABBITMQ_DEFAULT_USER=mpbadmin
+  #       - RABBITMQ_DEFAULT_PASS=Elverde.1978%
+  #     volumes:
+  #       - ./rabbitmq/data:/var/lib/rabbitmq
 
   backend:
     build: ./backend
@@ -71,22 +71,22 @@ services:
       - default
       - pbuniversity-net
 
-  worker:
-    build: ./backend
-    container_name: ecomm_worker
-    profiles: [ "local" ]
-    command: [ "celery", "-A", "app.celery_worker.celery_app", "worker", "--loglevel=info" ]
-    depends_on:
-      - mongo
-      - redis
-      - rabbitmq
-    volumes:
-      - ./backend:/app
-    environment:
-      - MONGO_URI=mongodb://pbmnguser:P1n3c1092$@mongo:27017
-      - REDIS_URL=redis://redis:6379/0
-      - RABBITMQ_URL=amqp://mpbadmin:Elverde.1978%25@rabbitmq:5672//
-      - DATABASE_NAME=ecomm
+  #   worker:
+  #     build: ./backend
+  #     container_name: ecomm_worker
+  #     profiles: [ "local" ]
+  #     command: [ "celery", "-A", "app.celery_worker.celery_app", "worker", "--loglevel=info" ]
+  #     depends_on:
+  #       - mongo
+  #       - redis
+  #       - rabbitmq
+  #     volumes:
+  #       - ./backend:/app
+  #     environment:
+  #       - MONGO_URI=mongodb://pbmnguser:P1n3c1092$@mongo:27017
+  #       - REDIS_URL=redis://redis:6379/0
+  #       - RABBITMQ_URL=amqp://mpbadmin:Elverde.1978%25@rabbitmq:5672//
+  #       - DATABASE_NAME=ecomm
 
   haproxy:
     image: haproxy:2.4
