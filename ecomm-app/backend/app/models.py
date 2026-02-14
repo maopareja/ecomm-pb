@@ -63,6 +63,8 @@ class Product(Document):
     category: Optional[str] = None
     images: List[str] = []
     is_featured: bool = False
+    delivery_days: str = "immediate"  # immediate, 1, 2, 3, 5, 7, custom
+    tax_rate: float = 0.0  # Tax percentage (e.g., 7.0 for 7%)
     tenant: Link[Tenant] # Use Link[Tenant] for consistency with User model
 
     class Settings:

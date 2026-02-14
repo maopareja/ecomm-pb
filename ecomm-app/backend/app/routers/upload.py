@@ -7,9 +7,27 @@ from pathlib import Path
 router = APIRouter()
 
 UPLOAD_DIR = Path("app/static_uploads")
+UPLOAD_HERO_DIR = UPLOAD_DIR / "hero"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+UPLOAD_HERO_DIR.mkdir(parents=True, exist_ok=True)
 
-@router.post("/")
+@router.get("/hero")
+async def list_hero_images():
+    try:
+        if not UPLOAD_HERO_DIR.exists():
+            return []
+        
+        # List all files with image extensions
+        images = []
+        for file in UPLOAD_HERO_DIR.iterdir():
+            if file.is_file() and file.suffix.lower() in [".jpg", ".jpeg", ".png", ".webp", ".gif"]:
+                images.append(file.name)
+        
+        return sorted(images)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("")
 async def upload_image(file: UploadFile = File(...)):
     try:
         # Validate file type

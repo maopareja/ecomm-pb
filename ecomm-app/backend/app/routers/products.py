@@ -20,6 +20,8 @@ class ProductCreate(BaseModel):
     category: str = None
     images: List[str] = []
     is_featured: bool = False
+    delivery_days: str = "immediate"
+    tax_rate: float = 0.0
 
 @router.get("", response_model=List[Product])
 async def list_products(
@@ -78,6 +80,8 @@ async def create_product(
         category=prod.category,
         images=prod.images,
         is_featured=prod.is_featured,
+        delivery_days=prod.delivery_days,
+        tax_rate=prod.tax_rate,
         tenant=tenant
     )
     await product.insert()
@@ -118,6 +122,8 @@ async def update_product(
     product.category = prod.category
     product.images = prod.images
     product.is_featured = prod.is_featured
+    product.delivery_days = prod.delivery_days
+    product.tax_rate = prod.tax_rate
     
     await product.save()
     return product

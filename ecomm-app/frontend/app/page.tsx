@@ -44,12 +44,16 @@ export default function TenantStore() {
   const [authPass, setAuthPass] = useState("");
   const [authMsg, setAuthMsg] = useState("");
 
+  // Hero Carousel State
+  const [heroImages, setHeroImages] = useState<string[]>([]);
+
   useEffect(() => {
     fetchUser();
     fetchCategories();
     fetchLocations(); // Fetch locations
     fetchProducts();
     fetchCart();
+    fetchHeroImages();
   }, []);
 
   useEffect(() => {
@@ -111,6 +115,13 @@ export default function TenantStore() {
       .then(setCurrentCart)
       .catch(console.error);
   }
+
+  const fetchHeroImages = () => {
+    fetch(`${API_BASE}/api/upload/hero`, { credentials: "include" })
+      .then(res => res.ok ? res.json() : [])
+      .then((names: string[]) => setHeroImages(names.map(n => `${API_BASE}/api/static/hero/${n}`)))
+      .catch(console.error);
+  };
 
   const addToCart = async (product: any) => {
     if (product.stock <= 0) {
@@ -185,11 +196,10 @@ export default function TenantStore() {
 
       {/* HEADER */}
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-sm border-b border-[var(--color-primary)]/20">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between gap-8">
+        <div className="w-full px-2 md:px-6 py-4 flex items-center justify-between gap-8">
           {/* Logo */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            <div className="w-10 h-10 bg-[var(--color-primary)] rounded-full flex items-center justify-center text-white text-xl font-bold">PB</div>
-            <h1 className="text-2xl font-bold tracking-tight text-[var(--color-chocolate)]">PB <span className="text-[var(--color-primary)]">Bakery</span> <span className="text-[8px] opacity-0">v2</span></h1>
+            <img src={`${API_BASE}/PB_logo.png`} alt="Pinecrest Bakery" className="h-16 w-auto" />
           </div>
 
           {/* Search Bar */}
@@ -258,20 +268,9 @@ export default function TenantStore() {
         </div>
       </header>
 
-      {/* HERO SECTION */}
+      {/* HERO SECTION - Carousel */}
       {!searchQuery && (
-        <section className="relative h-[400px] flex items-center justify-center bg-[url('https://images.unsplash.com/photo-1626803775151-61d756612fcd?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center">
-          <div className="absolute inset-0 bg-black/30"></div>
-          <div className="relative z-10 text-center text-white px-4">
-            <h2 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-4 drop-shadow-lg">Dulzura Artesanal</h2>
-            <p className="text-xl md:text-2xl font-medium opacity-90 max-w-2xl mx-auto drop-shadow-md">
-              Los mejores pasteles y postres horneados con amor para tus momentos especiales.
-            </p>
-            <button onClick={() => document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' })} className="mt-8 bg-[var(--color-primary)] text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-white hover:text-[var(--color-primary)] transition-all transform hover:scale-105">
-              Ver Catálogo
-            </button>
-          </div>
-        </section>
+        <HeroCarousel images={heroImages} />
       )}
 
       {/* FEEDBACK MSG */}
@@ -338,7 +337,7 @@ export default function TenantStore() {
 
                   {p.images && p.images.length > 0 ? (
                     <img
-                      src={p.images[0]}
+                      src={p.images[0].startsWith('/') ? `${API_BASE}${p.images[0]}` : p.images[0]}
                       alt={p.name}
                       className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500"
                     />
@@ -761,6 +760,9 @@ function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCart
                       return;
                     }
 
+                    const deliveryDays = formData.get("pdelivery") || "immediate";
+                    const taxRate = parseFloat(formData.get("ptax")?.toString() || "0");
+
                     const res = await fetch(`${API_BASE}/api/products`, {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
@@ -770,7 +772,9 @@ function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCart
                         price,
                         initial_inventory,
                         category: cat,
-                        images: newProductImage ? [newProductImage] : []
+                        images: newProductImage ? [newProductImage] : [],
+                        delivery_days: deliveryDays,
+                        tax_rate: isNaN(taxRate) ? 0 : taxRate
                       }),
                       credentials: "include"
                     });
@@ -806,6 +810,22 @@ function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCart
                         <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Precio ($)</label>
                         <input type="text" value={priceRaw} onChange={(e) => setPriceRaw(e.target.value.replace(/[^0-9.]/g, ''))} className="w-full border p-3 rounded-xl font-bold" required />
                       </div>
+                      <div>
+                        <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Tax / Impuesto (%)</label>
+                        <input type="number" name="ptax" step="0.01" min="0" max="100" placeholder="0" className="w-full border p-3 rounded-xl font-bold" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Disponibilidad de Entrega</label>
+                      <select name="pdelivery" className="w-full border p-3 rounded-xl bg-white">
+                        <option value="immediate">Inmediata</option>
+                        <option value="1">1 Día</option>
+                        <option value="2">2 Días</option>
+                        <option value="3">3 Días</option>
+                        <option value="5">5 Días</option>
+                        <option value="7">7 Días</option>
+                        <option value="custom">Personalizado / Consultar</option>
+                      </select>
                     </div>
 
                     {/* Image Upload */}
@@ -819,7 +839,7 @@ function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCart
                           className="w-full border p-3 rounded-xl bg-white"
                         />
                         {newProductImage && (
-                          <img src={newProductImage} alt="Preview" className="w-16 h-16 object-cover rounded-lg border shadow-sm" />
+                          <img src={newProductImage.startsWith('/') ? `${API_BASE}${newProductImage}` : newProductImage} alt="Preview" className="w-16 h-16 object-cover rounded-lg border shadow-sm" />
                         )}
                       </div>
                     </div>
@@ -1157,6 +1177,9 @@ function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCart
                     return;
                   }
 
+                  const editDelivery = formData.get("pdelivery") || editProduct.delivery_days || "immediate";
+                  const editTax = parseFloat(formData.get("ptax")?.toString() || "0");
+
                   const res = await fetch(`${API_BASE}/api/products/${editProduct._id}`, {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
@@ -1166,7 +1189,9 @@ function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCart
                       price,
                       category: cat,
                       images: editProduct.images || [],
-                      is_featured: editProduct.is_featured || false
+                      is_featured: editProduct.is_featured || false,
+                      delivery_days: editDelivery,
+                      tax_rate: isNaN(editTax) ? 0 : editTax
                     }),
                     credentials: "include"
                   });
@@ -1206,6 +1231,24 @@ function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCart
                       <input type="text" value={priceRaw} onChange={(e) => setPriceRaw(e.target.value.replace(/[^0-9.]/g, ''))} className="w-full border p-3 rounded-xl font-bold" required />
                     </div>
                     <div>
+                      <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Tax / Impuesto (%)</label>
+                      <input type="number" name="ptax" step="0.01" min="0" max="100" defaultValue={editProduct.tax_rate || 0} className="w-full border p-3 rounded-xl font-bold" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Disponibilidad de Entrega</label>
+                      <select name="pdelivery" defaultValue={editProduct.delivery_days || "immediate"} className="w-full border p-3 rounded-xl bg-white">
+                        <option value="immediate">Inmediata</option>
+                        <option value="1">1 Día</option>
+                        <option value="2">2 Días</option>
+                        <option value="3">3 Días</option>
+                        <option value="5">5 Días</option>
+                        <option value="7">7 Días</option>
+                        <option value="custom">Personalizado / Consultar</option>
+                      </select>
+                    </div>
+                    <div>
                       <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Stock Total (Sedes)</label>
                       <input type="number" value={editProduct.stock} disabled className="w-full border p-3 rounded-xl font-bold bg-gray-100 text-gray-500 cursor-not-allowed" />
                       <p className="text-[10px] text-blue-500 mt-1 font-bold">Gestionar en "📦 Inventario"</p>
@@ -1223,7 +1266,7 @@ function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCart
                         className="w-full border p-3 rounded-xl bg-white"
                       />
                       {editProduct.images && editProduct.images.length > 0 && (
-                        <img src={editProduct.images[0]} alt="Preview" className="w-16 h-16 object-cover rounded-lg border shadow-sm" />
+                        <img src={editProduct.images[0].startsWith('/') ? `${API_BASE}${editProduct.images[0]}` : editProduct.images[0]} alt="Preview" className="w-16 h-16 object-cover rounded-lg border shadow-sm" />
                       )}
                     </div>
                   </div>
@@ -1238,5 +1281,60 @@ function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCart
         )
       }
     </div >
+  );
+}
+
+function HeroCarousel({ images }: { images: string[] }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    if (images.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [images]);
+
+  const defaultHero = "https://images.unsplash.com/photo-1626803775151-61d756612fcd?q=80&w=2070&auto=format&fit=crop";
+  const displayImages = images.length > 0 ? images : [defaultHero];
+
+  return (
+    <section className="relative h-[550px] md:h-[700px] overflow-hidden bg-gray-900">
+      {displayImages.map((img, idx) => (
+        <div
+          key={img}
+          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${idx === currentIndex ? "opacity-100" : "opacity-0"
+            }`}
+        >
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url('${img}')` }}
+          />
+          <div className="absolute inset-0 bg-black/40" />
+        </div>
+      ))}
+
+      {/* Bottom bar: dots + button in one line */}
+      <div className="absolute bottom-0 left-0 right-0 z-20 flex items-center justify-center gap-6 py-4 bg-gradient-to-t from-black/60 to-transparent">
+        {displayImages.length > 1 && (
+          <div className="flex gap-2">
+            {displayImages.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentIndex(idx)}
+                className={`w-3 h-3 rounded-full transition-all ${idx === currentIndex ? "bg-white w-8" : "bg-white/40 hover:bg-white/60"
+                  }`}
+              />
+            ))}
+          </div>
+        )}
+        <button
+          onClick={() => document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth" })}
+          className="bg-[var(--color-primary)] text-white px-6 py-2 rounded-full font-bold text-sm shadow-lg hover:bg-white hover:text-[var(--color-primary)] transition-all transform hover:scale-105"
+        >
+          Ver Catálogo
+        </button>
+      </div>
+    </section>
   );
 }
