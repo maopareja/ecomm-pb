@@ -40,8 +40,7 @@ async def populate():
         print("❌ Tenant 'ecomm-pb' no encontrado. Asegúrate de ejecutar bootstrap.py primero.")
         return
 
-    tenant_id = str(default_tenant.id)
-    print(f"✅ Usando Tenant ID: {tenant_id}")
+    print(f"✅ Usando Tenant: {default_tenant.name} ({default_tenant.id})")
 
     count_new = 0
     count_existing = 0
@@ -50,7 +49,7 @@ async def populate():
         # Verificar si existe por nombre y tenant
         existing = await Location.find_one(
             Location.name == store["name"],
-            Location.tenant_id == tenant_id
+            Location.tenant.id == default_tenant.id
         )
         
         if existing:
@@ -66,7 +65,7 @@ async def populate():
                 name=store["name"],
                 address=store["address"],
                 phone=store["phone"],
-                tenant_id=tenant_id
+                tenant=default_tenant
             )
             await new_loc.insert()
             count_new += 1

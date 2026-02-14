@@ -29,7 +29,7 @@ export default function TenantStore() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [cartMsg, setCartMsg] = useState("");
 
-  const siteName = "PB Pasteles";
+  const siteName = "PB";
 
   const [user, setUser] = useState<any>(null);
   const [currentCart, setCurrentCart] = useState<any>({});
@@ -189,7 +189,7 @@ export default function TenantStore() {
           {/* Logo */}
           <div className="flex items-center gap-2 flex-shrink-0">
             <div className="w-10 h-10 bg-[var(--color-primary)] rounded-full flex items-center justify-center text-white text-xl font-bold">PB</div>
-            <h1 className="text-2xl font-bold tracking-tight text-[var(--color-chocolate)]">PB <span className="text-[var(--color-primary)]">Pasteles</span> <span className="text-[8px] opacity-0">v2</span></h1>
+            <h1 className="text-2xl font-bold tracking-tight text-[var(--color-chocolate)]">PB <span className="text-[var(--color-primary)]">Bakery</span> <span className="text-[8px] opacity-0">v2</span></h1>
           </div>
 
           {/* Search Bar */}
@@ -380,9 +380,9 @@ export default function TenantStore() {
 
       <footer className="py-12 bg-[#2a221d] text-[var(--color-secondary)]">
         <div className="container mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold mb-4">PB Pasteles</h2>
+          <h2 className="text-3xl font-bold mb-4">PB</h2>
           <p className="text-white/60 mb-8 max-w-md mx-auto">Excelencia en repostería y atención personalizada. Hacemos tus momentos dulces inolvidables.</p>
-          <p className="text-sm text-white/20">&copy; 2026 PB Pasteles. Todos los derechos reservados.</p>
+          <p className="text-sm text-white/20">&copy; 2026 PB. Todos los derechos reservados.</p>
         </div>
       </footer>
 
