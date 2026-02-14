@@ -96,6 +96,7 @@ async def checkout(
         total=total,
         status="PAID", # We assume immediate payment success for MVP
         shipping_address=req_body.shipping_address,
+        location_id=req_body.location_id, # Added
         payment_method=req_body.payment_method
     )
     await order.insert()

@@ -87,6 +87,7 @@ class Order(Document):
     total: float
     status: OrderStatus = OrderStatus.PENDING
     shipping_address: Optional[str] = None
+    location_id: Optional[str] = None # Added
     payment_method: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
 

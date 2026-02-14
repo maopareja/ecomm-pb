@@ -43,6 +43,7 @@ export default function TenantStore() {
   const [authEmail, setAuthEmail] = useState("");
   const [authPass, setAuthPass] = useState("");
   const [authMsg, setAuthMsg] = useState("");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Hero Carousel State
   const [heroImages, setHeroImages] = useState<string[]>([]);
@@ -196,31 +197,32 @@ export default function TenantStore() {
 
       {/* HEADER */}
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-sm border-b border-[var(--color-primary)]/20">
-        <div className="w-full px-2 md:px-6 py-4 flex items-center justify-between gap-8">
-          {/* Logo */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <img src={`${API_BASE}/PB_logo.png`} alt="Pinecrest Bakery" className="h-16 w-auto" />
+        <div className="container mx-auto px-4 md:px-8 py-3 flex items-center justify-between gap-4">
+
+          {/* Hamburger Menu (Mobile) */}
+          <button
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="md:hidden text-2xl p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            ☰
+          </button>
+
+          {/* Logo (Centered on mobile, Left on desktop) */}
+          <div className="flex-grow md:flex-grow-0 flex justify-center md:justify-start">
+            <Link href="/" className="flex items-center">
+              <img src={`${API_BASE}/PB_logo.png`} alt="Pinecrest Bakery" className="h-12 md:h-16 w-auto transition-all" />
+            </Link>
           </div>
 
-          {/* Search Bar */}
+          {/* Search Bar (Desktop only) */}
           <div className="flex-grow max-w-xl relative hidden md:flex items-center gap-4">
-            {/* Store Selector */}
-            <select
-              value={selectedLocation}
-              onChange={(e) => setSelectedLocation(e.target.value)}
-              className="bg-white/90 border-0 rounded-full px-4 py-2.5 text-sm font-bold text-[var(--color-chocolate)] hover:bg-white transition-all cursor-pointer focus:ring-0"
-            >
-              <option value="">🏠 Todas las Sedes</option>
-              {locations.filter((l: any) => l.is_active).map((l: any) => (
-                <option key={l._id} value={l._id}>📍 {l.name}</option>
-              ))}
-            </select>
+
 
             <div className="relative flex-grow">
               <input
                 type="text"
                 placeholder="Buscar postres, tortas..."
-                className="w-full pl-12 pr-4 py-2.5 rounded-full bg-gray-100 border-none focus:ring-2 focus:ring-[var(--color-primary)] focus:bg-white transition-all outline-none"
+                className="w-full pl-12 pr-4 py-2.5 rounded-full bg-gray-100 border-none focus:ring-2 focus:ring-[var(--color-primary)] focus:bg-white transition-all outline-none text-sm"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -228,43 +230,47 @@ export default function TenantStore() {
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-6">
+          {/* Actions (Login / Cart) */}
+          <div className="flex items-center gap-2 md:gap-6">
             {user ? (
-              <div className="flex items-center gap-2 cursor-pointer group relative">
-                <div className="text-right hidden lg:block">
-                  <p className="text-xs text-gray-400 font-bold">Bienvenido</p>
+              <div className="hidden md:flex items-center gap-2 cursor-pointer group relative text-right">
+                <div className="hidden lg:block">
+                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Bienvenido</p>
                   <p className="text-sm font-bold truncate max-w-[150px]">{user.email.split('@')[0]}</p>
                 </div>
-                <button onClick={handleLogout} className="text-xs text-red-400 hover:text-red-600 font-bold ml-2">Salir</button>
+                <button onClick={handleLogout} className="text-xs text-red-500 hover:text-red-700 font-bold ml-2">Salir</button>
               </div>
             ) : (
-              <button onClick={() => setIsLoginModalOpen(true)} className="font-bold hover:text-[var(--color-primary)] transition-colors">Ingresar</button>
+              <button onClick={() => setIsLoginModalOpen(true)} className="hidden md:block font-bold hover:text-[var(--color-primary)] transition-colors text-sm">Ingresar</button>
             )}
 
-            {/* Cart Icon with Dropdown */}
             {/* Cart Icon */}
             <Link href="/checkout" className="relative group">
-              <div className="p-3 bg-[var(--color-primary)] text-white rounded-full hover:shadow-lg hover:scale-105 transition-all shadow-md">
-                🛒
+              <div className="p-2.5 md:p-3 bg-[var(--color-primary)] text-white rounded-full hover:shadow-lg hover:scale-105 transition-all shadow-md">
+                <span className="text-lg md:text-xl">🛒</span>
               </div>
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-[var(--color-accent)] text-black text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white">
+                <span className="absolute -top-1 -right-1 bg-[var(--color-accent)] text-black text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white">
                   {cartCount}
                 </span>
               )}
             </Link>
           </div>
         </div>
-        {/* Mobile Search */}
-        <div className="md:hidden px-6 pb-4">
-          <input
-            type="text"
-            placeholder="Buscar..."
-            className="w-full px-4 py-2 rounded-lg bg-gray-100 border-none outline-none"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+
+        {/* Mobile Search & Location (Below Header) */}
+        <div className="md:hidden px-4 pb-3 flex gap-2">
+          <div className="relative flex-grow">
+            <input
+              type="text"
+              placeholder="Buscar..."
+              className="w-full pl-10 pr-4 py-2 rounded-full bg-gray-100 border-none outline-none text-sm"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs">🔍</span>
+          </div>
+
         </div>
       </header>
 
@@ -454,6 +460,66 @@ export default function TenantStore() {
             🛠️
           </button>
         )}
+      {/* Side Drawer (Mobile) */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-[60] md:hidden">
+          {/* Overlay */}
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+          {/* Drawer Content */}
+          <div className="absolute top-0 left-0 bottom-0 w-[280px] bg-white shadow-2xl flex flex-col animate-in slide-in-from-left duration-300">
+            <div className="p-6 border-b flex justify-between items-center bg-white">
+              <img src={`${API_BASE}/PB_logo.png`} alt="Logo" className="h-10 w-auto" />
+              <button onClick={() => setIsMobileMenuOpen(false)} className="text-2xl text-gray-400 hover:text-gray-600">✕</button>
+            </div>
+
+            <nav className="p-6 flex flex-col gap-6 font-bold text-lg text-[var(--color-chocolate)]">
+              <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-primary)] transition-colors flex items-center gap-3">
+                <span className="text-xl">🏠</span> Inicio
+              </Link>
+              <button
+                onClick={() => {
+                  document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth" });
+                  setIsMobileMenuOpen(false);
+                }}
+                className="text-left hover:text-[var(--color-primary)] transition-colors flex items-center gap-3"
+              >
+                <span className="text-xl">🍰</span> Catálogo
+              </button>
+
+              <div className="border-t my-2" />
+
+              {user ? (
+                <div className="flex flex-col gap-4">
+                  <div className="bg-gray-50 p-4 rounded-xl">
+                    <p className="text-[10px] text-gray-400 uppercase mb-1 tracking-wider">Sesión Activa</p>
+                    <p className="text-sm font-bold truncate text-[var(--color-chocolate)]">{user.email}</p>
+                  </div>
+                  <button onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }} className="text-left text-red-500 hover:text-red-700 transition-colors flex items-center gap-3 px-2">
+                    <span className="text-xl">🚪</span> Salir
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setIsLoginModalOpen(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="text-left py-2 hover:text-[var(--color-primary)] transition-colors flex items-center gap-3 px-2"
+                >
+                  <span className="text-xl">👤</span> Ingresar
+                </button>
+              )}
+            </nav>
+
+            <div className="mt-auto p-6 bg-gray-50 border-t text-[10px] text-gray-400 font-bold uppercase tracking-widest text-center italic">
+              — Pinecrest Bakery & Cafe —
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1280,7 +1346,7 @@ function AdminDashboard({ currentUser, setCartMsg }: { currentUser: any, setCart
           </div>
         )
       }
-    </div >
+    </div>
   );
 }
 
@@ -1299,7 +1365,7 @@ function HeroCarousel({ images }: { images: string[] }) {
   const displayImages = images.length > 0 ? images : [defaultHero];
 
   return (
-    <section className="relative h-[550px] md:h-[700px] overflow-hidden bg-gray-900">
+    <section className="relative h-[220px] md:h-[700px] overflow-hidden bg-gray-900 shadow-inner">
       {displayImages.map((img, idx) => (
         <div
           key={img}
@@ -1307,22 +1373,22 @@ function HeroCarousel({ images }: { images: string[] }) {
             }`}
         >
           <div
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-700 transform scale-100"
             style={{ backgroundImage: `url('${img}')` }}
           />
-          <div className="absolute inset-0 bg-black/40" />
+          <div className="absolute inset-0 bg-black/10" />
         </div>
       ))}
 
-      {/* Bottom bar: dots + button in one line */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 flex items-center justify-center gap-6 py-4 bg-gradient-to-t from-black/60 to-transparent">
+      {/* Navigation elements */}
+      <div className="absolute bottom-4 left-0 right-0 z-20 flex items-center justify-center gap-4 py-2">
         {displayImages.length > 1 && (
-          <div className="flex gap-2">
+          <div className="flex gap-1.5 md:gap-2">
             {displayImages.map((_, idx) => (
               <button
                 key={idx}
                 onClick={() => setCurrentIndex(idx)}
-                className={`w-3 h-3 rounded-full transition-all ${idx === currentIndex ? "bg-white w-8" : "bg-white/40 hover:bg-white/60"
+                className={`w-2 h-2 md:w-3 md:h-3 rounded-full transition-all ${idx === currentIndex ? "bg-white w-6 md:w-8" : "bg-white/40 hover:bg-white/60"
                   }`}
               />
             ))}
@@ -1330,7 +1396,7 @@ function HeroCarousel({ images }: { images: string[] }) {
         )}
         <button
           onClick={() => document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth" })}
-          className="bg-[var(--color-primary)] text-white px-6 py-2 rounded-full font-bold text-sm shadow-lg hover:bg-white hover:text-[var(--color-primary)] transition-all transform hover:scale-105"
+          className="bg-[var(--color-primary)] text-white px-4 py-1.5 md:px-6 md:py-2 rounded-full font-bold text-xs md:text-sm shadow-lg hover:bg-white hover:text-[var(--color-primary)] transition-all transform hover:scale-105"
         >
           Ver Catálogo
         </button>
