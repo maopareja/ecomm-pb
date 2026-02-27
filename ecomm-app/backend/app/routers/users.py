@@ -25,14 +25,16 @@ class UserResponse(BaseModel):
     email: str
     role: UserRole
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
 
 @router.get("", response_model=List[UserResponse])
 async def list_users(
     user: User = Depends(require_role([UserRole.ADMIN, UserRole.OWNER]))
 ):
-    users = await User.find_all().to_list()
+    # Exclude CUSTOMER role from the staff users list
+    users = await User.find(User.role != UserRole.CUSTOMER).to_list()
     # Manual mapping if needed or rely on Pydantic
     return [
         UserResponse(

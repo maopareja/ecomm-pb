@@ -46,7 +46,7 @@ export default function Header({
                     <div className="relative flex-grow">
                         <input
                             type="text"
-                            placeholder="Buscar postres, tortas..."
+                            placeholder="Search desserts, cakes..."
                             className="w-full pl-12 pr-4 py-2.5 rounded-full bg-gray-100 border-none focus:ring-2 focus:ring-[var(--color-primary)] focus:bg-white transition-all outline-none text-sm"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
@@ -58,15 +58,25 @@ export default function Header({
                 {/* Actions (Login / Cart) */}
                 <div className="flex items-center gap-2 md:gap-6">
                     {user ? (
-                        <div className="hidden md:flex items-center gap-2 cursor-pointer group relative text-right">
-                            <div className="hidden lg:block">
-                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Bienvenido</p>
-                                <p className="text-sm font-bold truncate max-w-[150px]">{user.email.split('@')[0]}</p>
+                        <div className="flex items-center gap-4">
+                            {(user.is_owner || ['OWNER', 'ADMIN', 'PRODUCT_MANAGER', 'INVENTORY_MANAGER'].includes(user.role)) && (
+                                <Link
+                                    href="/admin"
+                                    className="hidden md:block text-xs font-black text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-3 py-1.5 rounded-lg hover:bg-[var(--color-primary)] hover:text-white transition-all uppercase tracking-wider"
+                                >
+                                    Admin Dashboard
+                                </Link>
+                            )}
+                            <div className="hidden md:flex items-center gap-2 cursor-pointer group relative text-right">
+                                <div className="hidden lg:block">
+                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Welcome</p>
+                                    <p className="text-sm font-bold truncate max-w-[150px]">{user.email.split('@')[0]}</p>
+                                </div>
+                                <button onClick={onLogout} className="text-xs text-red-500 hover:text-red-700 font-bold ml-2">Logout</button>
                             </div>
-                            <button onClick={onLogout} className="text-xs text-red-500 hover:text-red-700 font-bold ml-2">Salir</button>
                         </div>
                     ) : (
-                        <button onClick={onLoginClick} className="hidden md:block font-bold hover:text-[var(--color-primary)] transition-colors text-sm">Ingresar</button>
+                        <button onClick={onLoginClick} className="hidden md:block font-bold hover:text-[var(--color-primary)] transition-colors text-sm">Login</button>
                     )}
 
                     {/* Cart Icon */}
@@ -109,7 +119,7 @@ export default function Header({
                 <div className="relative flex-grow">
                     <input
                         type="text"
-                        placeholder="Buscar..."
+                        placeholder="Search..."
                         className="w-full pl-10 pr-4 py-2 rounded-full bg-gray-100 border-none outline-none text-sm"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}

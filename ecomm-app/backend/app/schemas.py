@@ -56,3 +56,15 @@ class ClinicalRecordRead(ClinicalRecordBase):
     id: PydanticObjectId
     date: datetime
     created_at: datetime
+# --- Customer Schemas ---
+class CustomerBase(BaseModel):
+    full_name: str
+    phone: Optional[str] = None
+    address: Optional[str] = None
+
+class CustomerCreate(CustomerBase):
+    pass
+
+class CustomerRead(CustomerBase):
+    id: PydanticObjectId
+    created_at: datetime

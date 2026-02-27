@@ -95,6 +95,7 @@ async def init_db():
     await init_beanie(database=client[settings.DATABASE_NAME], document_models=[
         # User, Tenant, Product, Order, Module
         "app.models.User",
+        "app.models.Customer",
         "app.models.Tenant",
         "app.models.Module",
         "app.models.Product",

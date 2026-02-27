@@ -8,6 +8,7 @@ from beanie import Document, Link, Indexed
 class UserRole(str, Enum):
     OWNER = "OWNER"
     ADMIN = "ADMIN"
+    MANAGER = "MANAGER"
     PRODUCT_MANAGER = "PRODUCT_MANAGER"
     INVENTORY_MANAGER = "INVENTORY_MANAGER"
     SALES = "SALES"
@@ -22,6 +23,16 @@ class User(Document):
 
     class Settings:
         name = "users"
+
+class Customer(Document):
+    user: Link[User]
+    full_name: str
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    class Settings:
+        name = "customers"
 
 class Tenant(Document):
     name: str

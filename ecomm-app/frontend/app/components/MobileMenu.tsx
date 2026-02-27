@@ -73,9 +73,18 @@ export default function MobileMenu({ isOpen, onClose, user, onLogout, onLoginCli
                                 <div className="text-black font-medium text-sm truncate">
                                     {user.email}
                                 </div>
+                                {['ADMIN', 'OWNER', 'PRODUCT_MANAGER', 'INVENTORY_MANAGER'].includes(user.role) && (
+                                    <Link
+                                        href="/admin"
+                                        onClick={onClose}
+                                        className="text-black font-bold text-sm bg-gray-100 p-3 rounded-xl flex items-center gap-2"
+                                    >
+                                        🛠️ Admin Dashboard
+                                    </Link>
+                                )}
                                 <button
                                     onClick={() => { onLogout(); onClose(); }}
-                                    className="text-left text-red-500 font-bold text-sm"
+                                    className="text-left text-red-500 font-bold text-sm px-1"
                                 >
                                     Log out
                                 </button>

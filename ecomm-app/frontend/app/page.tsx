@@ -33,9 +33,6 @@ export default function TenantStore() {
   const [authMsg, setAuthMsg] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Admin State
-  const [showAdmin, setShowAdmin] = useState(false);
-
   // Hero Carousel State
   const [heroImages, setHeroImages] = useState<string[]>([]);
 
@@ -285,28 +282,6 @@ export default function TenantStore() {
             <button onClick={() => setIsRegisterModalOpen(false)} className="mt-6 w-full text-gray-400 font-bold hover:text-black">Cerrar</button>
           </div>
         </div>
-      )}
-
-      {/* Admin Button */}
-      {(() => {
-        const hasAccess = user && (user.is_owner || ['OWNER', 'ADMIN', 'PRODUCT_MANAGER', 'INVENTORY_MANAGER'].includes(user.role));
-        return hasAccess;
-      })() && (
-          <button
-            onClick={() => setShowAdmin(true)}
-            className="fixed bottom-8 right-8 z-40 bg-[var(--color-primary)] w-14 h-14 rounded-full flex items-center justify-center shadow-2xl text-white text-2xl hover:scale-110 transition-transform border-4 border-white"
-          >
-            🛠️
-          </button>
-        )}
-
-      {/* Admin Dashboard Overlay */}
-      {showAdmin && (
-        <AdminDashboard
-          currentUser={user}
-          setCartMsg={setCartMsg}
-          onClose={() => setShowAdmin(false)}
-        />
       )}
 
       <MobileMenu

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Response, Depends
 from pydantic import BaseModel
-from app.models import User, Tenant
+from app.models import User, Tenant, UserRole, Customer
 from app.auth import get_password_hash, verify_password, create_access_token
 from app.config import settings
 from app.dependencies import get_current_user
@@ -15,42 +15,41 @@ router = APIRouter()
 class RegisterRequest(BaseModel):
     email: str
     password: str
+    full_name: str
 
 class LoginRequest(BaseModel):
     email: str
     password: str
 
-def generate_slug_from_email(email: str) -> str:
-    """Generate a slug from email username part (before @)"""
-    username = email.split('@')[0]
-    # Replace non-alphanumeric with hyphens, convert to lowercase
-    slug = re.sub(r'[^a-z0-9]+', '-', username.lower()).strip('-')
-    return slug
-
-async def get_unique_slug(base_slug: str) -> str:
-    """Get unique slug, appending number if necessary"""
-    slug = base_slug
-    counter = 2
-    while await Tenant.find_one(Tenant.slug == slug):
-        slug = f"{base_slug}{counter}"
-        counter += 1
-    return slug
-
 @router.post("/register")
 async def register(req: RegisterRequest, response: Response):
-    # Public registration disabled. Use Admin Panel.
-    raise HTTPException(status_code=403, detail="Registration is disabled. Contact administrator.")
+    # Check if user already exists
+    if await User.find_one(User.email == req.email):
+        raise HTTPException(status_code=400, detail="User already exists")
 
+    # Get default tenant (Single Tenant mode for ecomm-pb)
+    default_slug = "ecomm-pb"
+    tenant = await Tenant.find_one(Tenant.slug == default_slug)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
 
     hashed = get_password_hash(req.password)
-    # Register as normal user (Customer), NOT owner
+    
+    # Create User
     user = User(
         email=req.email, 
         hashed_password=hashed, 
-        is_owner=False,
+        role=UserRole.CUSTOMER,
         tenant=tenant
     )
     await user.insert()
+
+    # Create Customer
+    customer = Customer(
+        user=user,
+        full_name=req.full_name
+    )
+    await customer.insert()
     
     # Generate token for session
     access_token = create_access_token(
@@ -73,7 +72,7 @@ async def register(req: RegisterRequest, response: Response):
     
     return {
         "message": "Account registered successfully",
-        "tenant_slug": default_slug
+        "tenant_slug": tenant.slug
     }
 
 @router.post("/login")

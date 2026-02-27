@@ -10,11 +10,11 @@ services:
     volumes:
       - ./mongodb/data:/data/db
 
-  # redis:
-  #   image: redis:7
-  #   container_name: ecomm_redis
-  #   ports:
-  #     - "6480:6379"
+  redis:
+    image: redis:7
+    container_name: ecomm_redis
+    ports:
+      - "6480:6379"
 
   # rabbitmq:
   #   image: rabbitmq:3-management
@@ -33,7 +33,7 @@ services:
     container_name: ecomm_backend
     depends_on:
       - mongo
-      # - redis
+      - redis
       # - rabbitmq
     volumes:
       - ./backend:/app

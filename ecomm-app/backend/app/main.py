@@ -2,7 +2,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from app.database import init_db
-from app.routers import auth, products, cart, checkout, vet, locations, users, categories, upload
+from app.routers import auth, products, cart, checkout, vet, locations, users, categories, upload, customers
 from app.config import settings
 import redis.asyncio as aioredis
 import asyncio
@@ -33,6 +33,7 @@ app.include_router(cart.router, prefix="/cart", tags=["Cart"])
 app.include_router(checkout.router, prefix="/checkout", tags=["Checkout"])
 app.include_router(locations.router, prefix="/locations", tags=["Locations"])
 app.include_router(users.router, prefix="/users", tags=["Users"])
+app.include_router(customers.router, prefix="/customers", tags=["Customers"])
 app.include_router(categories.router, prefix="/categories", tags=["Categories"])
 app.include_router(upload.router, prefix="/upload", tags=["Uploads"])
 app.include_router(vet.router, prefix="/vet", tags=["Vet"])
