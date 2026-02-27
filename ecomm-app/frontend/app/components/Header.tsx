@@ -83,6 +83,27 @@ export default function Header({
                 </div>
             </div>
 
+            {/* Desktop Navigation Menu */}
+            <div className="hidden md:block border-t border-gray-100 py-4">
+                <nav className="container mx-auto px-4 md:px-8 flex items-center justify-between">
+                    <div className="flex items-center gap-8">
+                        <Link href="/menu" className="text-[var(--color-primary)] font-bold text-sm tracking-wider hover:opacity-80 transition-opacity">MENU</Link>
+                        <Link href="/order-party-items" className="text-black font-bold text-sm tracking-wider hover:text-[var(--color-primary)] transition-colors">ORDER PARTY ITEMS</Link>
+                        <Link href="/catering" className="text-black font-bold text-sm tracking-wider hover:text-[var(--color-primary)] transition-colors">CATERING</Link>
+                        <Link href="/cakes" className="text-black font-bold text-sm tracking-wider hover:text-[var(--color-primary)] transition-colors">CAKES</Link>
+                        <Link href="/about-us" className="text-black font-bold text-sm tracking-wider hover:text-[var(--color-primary)] transition-colors">ABOUT US</Link>
+                        <Link href="/bounce-back" className="text-black font-bold text-sm tracking-wider hover:text-[var(--color-primary)] transition-colors">BOUNCE BACK FROM CANCER</Link>
+                        <Link href="/blog-press" className="text-black font-bold text-sm tracking-wider hover:text-[var(--color-primary)] transition-colors">BLOG | PRESS</Link>
+                    </div>
+                    <Link
+                        href="/order-now"
+                        className="bg-[var(--color-primary)] text-white px-6 py-2.5 font-bold text-sm tracking-wider hover:shadow-lg hover:scale-105 transition-all"
+                    >
+                        ORDER BAKERY NOW
+                    </Link>
+                </nav>
+            </div>
+
             {/* Mobile Search (Below Header) */}
             <div className="md:hidden px-4 pb-3 flex gap-2">
                 <div className="relative flex-grow">

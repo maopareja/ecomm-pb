@@ -22,53 +22,78 @@ export default function MobileMenu({ isOpen, onClose, user, onLogout, onLoginCli
                 onClick={onClose}
             />
             {/* Drawer Content */}
-            <div className="absolute top-0 left-0 bottom-0 w-[280px] bg-white shadow-2xl flex flex-col animate-in slide-in-from-left duration-300">
-                <div className="p-6 border-b flex justify-between items-center bg-white">
-                    <img src={`${API_BASE}/PB_logo.png`} alt="Logo" className="h-10 w-auto" />
-                    <button onClick={onClose} className="text-2xl text-gray-400 hover:text-gray-600">✕</button>
+            <div className="absolute top-0 left-0 bottom-0 w-[85%] max-w-[320px] bg-white shadow-2xl flex flex-col animate-in slide-in-from-left duration-300">
+                {/* Search Header */}
+                <div className="flex items-center border-b">
+                    <input
+                        type="text"
+                        placeholder="Search"
+                        className="flex-grow px-4 py-4 text-gray-500 outline-none font-medium"
+                    />
+                    <button className="bg-[var(--color-primary)] text-white p-4 flex items-center justify-center">
+                        <span className="text-xl">🔍</span>
+                    </button>
+                    <button onClick={onClose} className="p-4 text-2xl text-black border-l">✕</button>
                 </div>
 
-                <nav className="p-6 flex flex-col gap-6 font-bold text-lg text-[var(--color-chocolate)]">
-                    <Link href="/" onClick={onClose} className="hover:text-[var(--color-primary)] transition-colors flex items-center gap-3">
-                        <span className="text-xl">🏠</span> Inicio
-                    </Link>
-                    <button
-                        onClick={() => {
-                            document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth" });
-                            onClose();
-                        }}
-                        className="text-left hover:text-[var(--color-primary)] transition-colors flex items-center gap-3"
-                    >
-                        <span className="text-xl">🍰</span> Catálogo
-                    </button>
+                {/* Navigation Links */}
+                <nav className="flex-grow overflow-y-auto">
+                    <ul className="flex flex-col">
+                        {[
+                            { name: 'MENU', href: '/menu', hasChevron: false },
+                            { name: 'ORDER PARTY ITEMS', href: '/order-party-items', hasChevron: true },
+                            { name: 'CATERING', href: '/catering', hasChevron: false },
+                            { name: 'CAKES', href: '/cakes', hasChevron: true },
+                            { name: 'ABOUT US', href: '/about-us', hasChevron: true },
+                            { name: 'BOUNCE BACK FROM CANCER', href: '/bounce-back', hasChevron: false },
+                            { name: 'BLOG | PRESS', href: '/blog-press', hasChevron: false },
+                            { name: 'ORDER BAKERY NOW', href: '/order-now', hasChevron: false },
+                        ].map((item) => (
+                            <li key={item.name} className="border-b">
+                                <Link
+                                    href={item.href}
+                                    onClick={onClose}
+                                    className="flex items-center justify-between px-4 py-4 hover:bg-gray-50 transition-colors"
+                                >
+                                    <span className="font-bold text-sm tracking-wide text-black uppercase">{item.name}</span>
+                                    {item.hasChevron && (
+                                        <span className="text-gray-400 text-xs">❯</span>
+                                    )}
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
 
-                    <div className="border-t my-2" />
+                    {/* Footer Actions in Menu */}
+                    <div className="p-4 flex flex-col gap-4">
+                        <Link href="/wishlist" onClick={onClose} className="text-black font-medium text-sm">Wishlist</Link>
 
-                    {user ? (
-                        <div className="flex flex-col gap-4">
-                            <div className="bg-gray-50 p-4 rounded-xl">
-                                <p className="text-[10px] text-gray-400 uppercase mb-1 tracking-wider">Sesión Activa</p>
-                                <p className="text-sm font-bold truncate text-[var(--color-chocolate)]">{user.email}</p>
+                        {user ? (
+                            <div className="flex flex-col gap-4">
+                                <div className="text-black font-medium text-sm truncate">
+                                    {user.email}
+                                </div>
+                                <button
+                                    onClick={() => { onLogout(); onClose(); }}
+                                    className="text-left text-red-500 font-bold text-sm"
+                                >
+                                    Log out
+                                </button>
                             </div>
-                            <button onClick={() => { onLogout(); onClose(); }} className="text-left text-red-500 hover:text-red-700 transition-colors flex items-center gap-3 px-2">
-                                <span className="text-xl">🚪</span> Salir
+                        ) : (
+                            <button
+                                onClick={() => { onLoginClick(); onClose(); }}
+                                className="text-left text-black font-medium text-sm"
+                            >
+                                Log in
                             </button>
-                        </div>
-                    ) : (
-                        <button
-                            onClick={() => {
-                                onLoginClick();
-                                onClose();
-                            }}
-                            className="text-left py-2 hover:text-[var(--color-primary)] transition-colors flex items-center gap-3 px-2"
-                        >
-                            <span className="text-xl">👤</span> Ingresar
-                        </button>
-                    )}
+                        )}
+                    </div>
                 </nav>
 
-                <div className="mt-auto p-6 bg-gray-50 border-t text-[10px] text-gray-400 font-bold uppercase tracking-widest text-center italic">
-                    — Pinecrest Bakery & Cafe —
+                {/* Bottom Banner */}
+                <div className="bg-[var(--color-primary)] text-white py-3 px-4 text-center font-bold text-sm">
+                    Get 10% Off!
                 </div>
             </div>
         </div>

@@ -14,7 +14,12 @@ router = APIRouter()
 from redis import asyncio as aioredis
 
 async def get_redis():
-    return await aioredis.from_url(settings.REDIS_URL, decode_responses=True)
+    try:
+        r = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
+        # Check connection or return and handle in routes
+        return r
+    except Exception:
+        return None
 
 class CartItem(BaseModel):
     product_id: str
@@ -35,13 +40,19 @@ async def add_to_cart(
         return {"error": "Missing x-session-id header"}
 
     r = await get_redis()
+    if not r:
+        return {"error": "Redis not available"}
+    
     key = f"cart:{tenant.slug}:{session_id}"
     
-    # Store as hash: product_id -> quantity
-    # Or just a list of JSONs. Hash is better for updating qtys.
-    await r.hincrby(key, item.product_id, item.quantity)
-    
-    return {"message": "Added to cart", "cart": await r.hgetall(key)}
+    try:
+        # Store as hash: product_id -> quantity
+        # Or just a list of JSONs. Hash is better for updating qtys.
+        await r.hincrby(key, item.product_id, item.quantity)
+        return {"message": "Added to cart", "cart": await r.hgetall(key)}
+    except Exception as e:
+        print(f"Redis Error: {e}")
+        return {"error": "Could not update cart"}
 
 @router.get("")
 async def get_cart(
@@ -53,8 +64,14 @@ async def get_cart(
         return {}
         
     r = await get_redis()
+    if not r:
+        return {}
+        
     key = f"cart:{tenant.slug}:{session_id}"
-    return await r.hgetall(key)
+    try:
+        return await r.hgetall(key)
+    except Exception:
+        return {}
 
 @router.delete("")
 async def clear_cart(
@@ -66,7 +83,13 @@ async def clear_cart(
         return {"message": "No session"}
         
     r = await get_redis()
+    if not r:
+        return {"message": "Redis not available"}
+
     key = f"cart:{tenant.slug}:{session_id}"
-    await r.delete(key)
+    try:
+        await r.delete(key)
+    except Exception:
+        pass
     
     return {"message": "Cart cleared"}
